@@ -1,0 +1,31 @@
+judge0:
+    api:
+        url: http://localhost:2358
+
+spring:
+    application:
+        name: OnlineJudgeCode
+
+    jpa:
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.MySQL8Dialect
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+
+    datasource:
+        url: jdbc:mysql://localhost:3301/onlineJudgeWeb?useSSL=false&serverTimezone=UTC
+        username: root
+        password: nguyen2005
+
+app:
+    jwt:
+        secret: "Ab17031991@#icomefromHanoicityandIloveyouWhatdoyoumeanAhihihi"
+        expiration: 8640000000
+        refresh-expiration: 2592000000
+
+quiz:
+    admin:
+        email: admin@gmail.com
+        password: A123456a@
