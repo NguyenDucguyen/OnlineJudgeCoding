@@ -5,6 +5,7 @@ import com.showtime.onlinejudgecode.auth.entity.User;
 import com.showtime.onlinejudgecode.auth.repository.UserRepository;
 import com.showtime.onlinejudgecode.auth.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,12 +20,13 @@ public class UserService implements IUserService {
 
 
     @Override
-    public User getUserById(String id) {
-        return userRepository.findById(id);
+    public User getUserById(String id) throws ChangeSetPersister.NotFoundException {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ChangeSetPersister.NotFoundException());
     }
 
     @Override
-    public User updateUser(String id, UserUpdate userUpdate){
+    public User updateUser(String id, UserUpdate userUpdate) throws ChangeSetPersister.NotFoundException {
         User user = getUserById(id);
         if(userUpdate.getUsername() != null){
             user.setUsername(userUpdate.getUsername());

@@ -5,6 +5,7 @@ import com.showtime.onlinejudgecode.auth.entity.User;
 import com.showtime.onlinejudgecode.auth.service.IUserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,12 +18,12 @@ public class UserController {
     @Autowired
     private  IUserService userService;
 
-    public ResponseEntity<?> getUserById(@PathVariable String id){
+    public ResponseEntity<?> getUserById(@PathVariable String id) throws ChangeSetPersister.NotFoundException {
         User user = userService.getUserById(id);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    public ResponseEntity<?> updateUser(@PathVariable String id, @RequestBody UserUpdate userUpdate){
+    public ResponseEntity<?> updateUser(@PathVariable String id, @RequestBody UserUpdate userUpdate) throws ChangeSetPersister.NotFoundException {
         User user = userService.updateUser(id, userUpdate);
         return new ResponseEntity<>(user, HttpStatus.UPGRADE_REQUIRED);
     }

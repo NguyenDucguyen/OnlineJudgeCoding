@@ -1,6 +1,5 @@
 package com.showtime.onlinejudgecode.judge.service;
 
-
 import com.showtime.onlinejudgecode.auth.entity.User;
 import com.showtime.onlinejudgecode.auth.repository.UserRepository;
 import com.showtime.onlinejudgecode.judge.dto.request.Judge0Request;
@@ -13,8 +12,10 @@ import com.showtime.onlinejudgecode.judge.entity.Submission;
 import com.showtime.onlinejudgecode.judge.entity.TestCase;
 import com.showtime.onlinejudgecode.judge.repository.ProblemRepository;
 import com.showtime.onlinejudgecode.judge.repository.SubmissionRepository;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
@@ -28,6 +29,7 @@ import java.util.Optional;
 @Slf4j
 public class SubmissionService {
 
+    // ... (Khai báo biến và Constructor giữ nguyên)
     private final Judge0Service judge0Service;
     private final SubmissionRepository submissionRepository;
     private final ProblemRepository problemRepository;
@@ -40,10 +42,21 @@ public class SubmissionService {
         this.userRepository = userRepository;
     }
 
+    /**
+     * Khi nộp code (GHI): Cần xóa cache cũ để danh sách hiển thị mới nhất.
+     * 1. Xóa cache lịch sử của User này (submission_user).
+     * 2. Xóa cache lịch sử của Problem này (submission_problem).
+     */
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "user_submissions", key = "#a1", condition = "#a1 != null"),
+            @CacheEvict(value = "problem_submissions", key = "#a0.problemId")
+    })
     public Mono<SubmissionResponse> submitCode(SubmissionRequest request, String userId) {
         Problem problem = problemRepository.findById(request.getProblemId())
                 .orElseThrow(() -> new RuntimeException("Problem not found"));
+
+        // ... (Logic tạo Submission ban đầu giữ nguyên)
         User user = Optional.ofNullable(userId)
                 .flatMap(userRepository::findById)
                 .orElse(null);
@@ -58,45 +71,45 @@ public class SubmissionService {
         submission.setTotalTestCases(problem.getTestCases() != null ? problem.getTestCases().size() : 0);
         submission.setPassedTestCases(0);
 
-        submission = submissionRepository.save(submission);
-        final Submission finalSubmission = submission;
+        Submission savedSubmission = submissionRepository.save(submission); // Đổi tên biến tránh final effective issue
 
         return runTestCases(problem.getTestCases(), request, problem)
                 .collectList()
                 .map(results -> {
+                    // ... (Logic tính toán kết quả giữ nguyên)
                     long passed = results.stream().filter(r -> r.getStatus().getId() == 3).count();
-                    finalSubmission.setPassedTestCases((int) passed);
-                    finalSubmission.setStatus(passed == results.size() ? "ACCEPTED" : "WRONG_ANSWER");
+                    savedSubmission.setPassedTestCases((int) passed);
+                    savedSubmission.setStatus(passed == results.size() ? "ACCEPTED" : "WRONG_ANSWER");
 
                     results.stream()
                             .filter(r -> r.getStatus().getId() != 3)
                             .findFirst()
                             .ifPresent(failed -> {
-                                finalSubmission.setOutput(failed.getStdout());
-                                finalSubmission.setErrorMessage(
+                                savedSubmission.setOutput(failed.getStdout());
+                                savedSubmission.setErrorMessage(
                                         failed.getStderr() != null ? failed.getStderr() : failed.getCompile_output()
                                 );
                             });
 
                     double avgTime = results.stream().mapToDouble(Judge0Response::getTime).average().orElse(0.0);
-                    finalSubmission.setRuntime((int) (avgTime * 1000));
-                    submissionRepository.save(finalSubmission);
+                    savedSubmission.setRuntime((int) (avgTime * 1000));
+                    submissionRepository.save(savedSubmission);
 
-                    return buildResponse(finalSubmission);
+                    return buildResponse(savedSubmission);
                 })
                 .onErrorMap(ex -> {
-                    // Cập nhật trạng thái khi Judge0 lỗi (đừng nuốt lỗi)
-                    finalSubmission.setStatus("JUDGE0_ERROR");
-                    finalSubmission.setErrorMessage(ex.getMessage());
-                    submissionRepository.save(finalSubmission);
-                    return ex; // đẩy lỗi ra cho controller map đúng status
+                    savedSubmission.setStatus("JUDGE0_ERROR");
+                    savedSubmission.setErrorMessage(ex.getMessage());
+                    submissionRepository.save(savedSubmission);
+                    return ex;
                 });
     }
 
-
+    // ... (runTestCases và buildResponse giữ nguyên)
     private Flux<Judge0Response> runTestCases(List<TestCase> testCases,
                                               SubmissionRequest request,
                                               Problem problem) {
+        // ... (Giữ nguyên logic cũ)
         List<TestCase> cases = testCases != null ? testCases : List.of();
         return Flux.fromIterable(cases)
                 .flatMap(testCase -> {
@@ -106,13 +119,13 @@ public class SubmissionService {
                     judge0Request.setStdin(testCase.getInput());
                     judge0Request.setExpected_output(testCase.getExpectedOutput());
 
-
                     return judge0Service.submitCode(judge0Request)
                             .flatMap(token -> judge0Service.waitForResult(token, 10));
                 });
     }
 
     private SubmissionResponse buildResponse(Submission submission) {
+        // ... (Giữ nguyên logic cũ)
         SubmissionResponse response = new SubmissionResponse();
         response.setSubmissionId(submission.getId());
         response.setStatus(submission.getStatus());
@@ -133,25 +146,41 @@ public class SubmissionService {
         return response;
     }
 
+    /**
+     * Lấy danh sách submission của User (ĐỌC): Cache lại.
+     * Key cache: submission_user::<userId>
+     */
+    @Cacheable(value = "submission_user", key = "#userId")
     public List<SubmissionHistoryResponse> getUserSubmissions(String userId) {
+        log.info("Fetching submissions for user {} from Database", userId);
         return submissionRepository.findByUser_IdOrderBySubmittedAtDesc(userId)
                 .stream()
                 .map(this::toHistoryResponse)
                 .toList();
     }
 
+    /**
+     * Lấy danh sách submission của Problem (ĐỌC): Cache lại.
+     * Key cache: submission_problem::<problemId>
+     */
+    @Cacheable(value = "submission_problem", key = "#problemId")
     public List<SubmissionHistoryResponse> getProblemSubmissions(Long problemId) {
+        log.info("Fetching submissions for problem {} from Database", problemId);
         return submissionRepository.findByProblem_IdOrderBySubmittedAtDesc(problemId)
                 .stream()
                 .map(this::toHistoryResponse)
                 .toList();
     }
 
+    // Không nên cache getSubmission chi tiết (byId) nếu trạng thái thay đổi liên tục
+    // từ PENDING -> ACCEPTED trong thời gian ngắn.
     public Optional<Submission> getSubmission(Long submissionId) {
         return submissionRepository.findById(submissionId);
     }
 
+    // ... (toHistoryResponse giữ nguyên)
     private SubmissionHistoryResponse toHistoryResponse(Submission submission) {
+        // ... (Giữ nguyên logic cũ)
         SubmissionHistoryResponse response = new SubmissionHistoryResponse();
         response.setId(submission.getId());
         if (submission.getProblem() != null) {

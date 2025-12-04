@@ -1,4 +1,4 @@
-package com.showtime.onlinejudgecode.judge.service.impl;
-
-public class SubmissionService {
-}
+//package com.showtime.onlinejudgecode.judge.service.impl;
+//
+//public class SubmissionService {
+//}
