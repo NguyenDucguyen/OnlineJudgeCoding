@@ -68,7 +68,20 @@ export interface User {
   id: string;
   username: string;
   email: string;
-  score: number;
-  problemsSolved: number;
-  rank: number;
+  role?: string;
+  avatar?: string;
+  score?: number;
+  problemsSolved?: number;
+  rank?: number;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: User;
+}
+
+export interface ApiResponse<T> {
+  status: string;
+  message: string;
+  data: T;
 }

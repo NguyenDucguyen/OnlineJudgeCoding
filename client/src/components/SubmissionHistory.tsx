@@ -2,18 +2,23 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Clock, CheckCircle, XCircle, Zap } from 'lucide-react';
 import { fetchMySubmissions } from '../services/api';
 import { SubmissionHistory as SubmissionHistoryType } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 const SubmissionHistory: React.FC = () => {
   const [submissions, setSubmissions] = useState<SubmissionHistoryType[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const userId = import.meta.env.VITE_DEMO_USER_ID || 'demo-user';
+  const { user, token } = useAuth();
 
   useEffect(() => {
+    if (!user) {
+      setSubmissions([]);
+      return;
+    }
     const load = async () => {
       setLoading(true);
       try {
-        const data = await fetchMySubmissions(userId);
+        const data = await fetchMySubmissions(user.id, token);
         setSubmissions(data);
         setError(null);
       } catch (err) {
@@ -24,7 +29,7 @@ const SubmissionHistory: React.FC = () => {
     };
 
     load();
-  }, [userId]);
+  }, [user, token]);
 
   const stats = useMemo(() => {
     const accepted = submissions.filter((s) => s.status?.toUpperCase() === 'ACCEPTED').length;

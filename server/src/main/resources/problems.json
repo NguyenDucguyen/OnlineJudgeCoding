@@ -1,0 +1,95 @@
+[
+  {
+    "title": "Two Sum",
+    "description": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.\n\nInput Format:\nFirst line: space-separated integers (array)\nSecond line: target integer\n\nOutput Format:\nTwo space-separated indices (0-based)",
+    "difficulty": "EASY",
+    "timeLimit": 2000,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "2 7 11 15\n9", "expectedOutput": "0 1", "hidden": false },
+      { "input": "3 2 4\n6", "expectedOutput": "1 2", "hidden": false },
+      { "input": "3 3\n6", "expectedOutput": "0 1", "hidden": true },
+      { "input": "1 5 9 13\n14", "expectedOutput": "0 3", "hidden": true },
+      { "input": "-3 4 3 90\n0", "expectedOutput": "0 2", "hidden": false }
+    ]
+  },
+  {
+    "title": "Palindrome Number",
+    "description": "Given an integer x, return true if x is a palindrome integer.\n\nAn integer is a palindrome when it reads the same backward as forward.\n\nInput Format:\nA single integer\n\nOutput Format:\ntrue or false",
+    "difficulty": "EASY",
+    "timeLimit": 1500,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "121", "expectedOutput": "true", "hidden": false },
+      { "input": "-121", "expectedOutput": "false", "hidden": false },
+      { "input": "10", "expectedOutput": "false", "hidden": true },
+      { "input": "1", "expectedOutput": "true", "hidden": true }
+    ]
+  },
+  {
+    "title": "Fizz Buzz",
+    "description": "Given an integer n, return a string array answer (1-indexed) where:\n- answer[i] == \"FizzBuzz\" if i is divisible by 3 and 5\n- answer[i] == \"Fizz\" if i is divisible by 3\n- answer[i] == \"Buzz\" if i is divisible by 5\n- answer[i] == i (as a string) otherwise\n\nInput Format:\nA single integer n\n\nOutput Format:\nSpace-separated strings",
+    "difficulty": "EASY",
+    "timeLimit": 1000,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "3", "expectedOutput": "1 2 Fizz", "hidden": false },
+      { "input": "5", "expectedOutput": "1 2 Fizz 4 Buzz", "hidden": false },
+      { "input": "15", "expectedOutput": "1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz", "hidden": true },
+      { "input": "1", "expectedOutput": "1", "hidden": true }
+    ]
+  },
+  {
+    "title": "Valid Parentheses",
+    "description": "Given a string s containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.\n\nInput Format:\nA single string containing bracket characters\n\nOutput Format:\ntrue or false",
+    "difficulty": "EASY",
+    "timeLimit": 1500,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "()", "expectedOutput": "true", "hidden": false },
+      { "input": "()[]{}", "expectedOutput": "true", "hidden": false },
+      { "input": "(]", "expectedOutput": "false", "hidden": false },
+      { "input": "([{}])", "expectedOutput": "true", "hidden": true },
+      { "input": "(((((", "expectedOutput": "false", "hidden": true }
+    ]
+  },
+  {
+    "title": "Merge Intervals",
+    "description": "Given an array of intervals where intervals[i] = [start_i, end_i], merge all overlapping intervals, and return an array of the non-overlapping intervals that cover all the intervals in the input.\n\nInput Format:\nEach line contains space-separated pairs: start end\n\nOutput Format:\nMerged intervals as space-separated pairs in ascending order",
+    "difficulty": "MEDIUM",
+    "timeLimit": 2500,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "1 3\n2 6\n8 10\n15 18", "expectedOutput": "1 6 | 8 10 | 15 18", "hidden": false },
+      { "input": "1 4\n4 5", "expectedOutput": "1 5", "hidden": false },
+      { "input": "6 8\n2 4\n1 3", "expectedOutput": "1 4 | 6 8", "hidden": true },
+      { "input": "1 4\n0 2\n3 5", "expectedOutput": "0 5", "hidden": true }
+    ]
+  },
+  {
+    "title": "Binary Search",
+    "description": "Given an array of integers nums which is sorted in ascending order, and an integer target, write a function to search target in nums. If target exists, return its index. Otherwise, return -1.\n\nInput Format:\nFirst line: space-separated sorted integers\nSecond line: target integer\n\nOutput Format:\nIndex of target or -1",
+    "difficulty": "EASY",
+    "timeLimit": 1000,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "-1 0 3 5 9 12\n9", "expectedOutput": "4", "hidden": false },
+      { "input": "-1 0 3 5 9 12\n2", "expectedOutput": "-1", "hidden": false },
+      { "input": "1 3 5 7 9\n9", "expectedOutput": "4", "hidden": true },
+      { "input": "1 3 5 7 9\n1", "expectedOutput": "0", "hidden": true }
+    ]
+  },
+  {
+    "title": "Reverse Linked List",
+    "description": "Given the head of a singly linked list, reverse the list, and return the reversed list.\n\nInput Format:\nSpace-separated integers representing linked list values\n\nOutput Format:\nSpace-separated integers of the reversed list",
+    "difficulty": "MEDIUM",
+    "timeLimit": 2000,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "1 2 3 4 5", "expectedOutput": "5 4 3 2 1", "hidden": false },
+      { "input": "1 2", "expectedOutput": "2 1", "hidden": false },
+      { "input": "7", "expectedOutput": "7", "hidden": true },
+      { "input": "1 2 3 4 5 6 7 8 9", "expectedOutput": "9 8 7 6 5 4 3 2 1", "hidden": true }
+    ]
+  }
+]

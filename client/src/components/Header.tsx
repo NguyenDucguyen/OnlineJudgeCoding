@@ -1,12 +1,15 @@
 import React from 'react';
-import { Code2, Trophy, Award, BookOpen, UserCircle2 } from 'lucide-react';
+import { Code2, Trophy, Award, BookOpen, UserCircle2, LogOut } from 'lucide-react';
+import { User } from '../types';
 
 interface HeaderProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  user?: User | null;
+  onLogout?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange }) => {
+const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, user, onLogout }) => {
   const tabs = [
     { id: 'prepare', label: 'Prepare', icon: BookOpen },
     { id: 'certify', label: 'Certify', icon: Award },
@@ -46,15 +49,29 @@ const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange }) => {
           </div>
           
           <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">Rank:</span> 1,234
-            </div>
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">Score:</span> 2,450
-            </div>
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-medium">JD</span>
-            </div>
+            {user ? (
+              <>
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">User:</span> {user.username}
+                </div>
+                {user.role && (
+                  <div className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700 font-semibold uppercase tracking-wide">
+                    {user.role}
+                  </div>
+                )}
+                <button
+                  onClick={onLogout}
+                  className="inline-flex items-center space-x-2 text-sm text-gray-700 hover:text-red-600"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </button>
+              </>
+            ) : (
+              <div className="text-sm text-gray-600">
+                <span className="font-medium">Guest mode</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
