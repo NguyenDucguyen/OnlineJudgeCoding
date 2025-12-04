@@ -14,8 +14,10 @@ import com.showtime.onlinejudgecode.judge.repository.ProblemRepository;
 import com.showtime.onlinejudgecode.judge.repository.SubmissionRepository;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -130,5 +132,10 @@ public class SubmissionService {
 
     public List<Submission> getProblemSubmissions(Long problemId) {
         return submissionRepository.findByProblemIdOrderBySubmittedAtDesc(problemId);
+    }
+
+    public Submission getSubmissionById(Long id) {
+        return submissionRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Submission không tồn tại"));
     }
 }

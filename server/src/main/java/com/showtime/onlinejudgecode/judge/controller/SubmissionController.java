@@ -7,12 +7,14 @@ import com.showtime.onlinejudgecode.judge.service.SubmissionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/submissions")
@@ -31,7 +33,7 @@ public class SubmissionController {
     @PostMapping
     public Mono<ResponseEntity<SubmissionResponse>> submit(@RequestBody SubmissionRequest request,
                                                            Authentication authentication) {
-        String userId = String.valueOf(getUserIdFromAuth(authentication));
+        String userId = getUserIdFromAuth(authentication);
 
         return submissionService.submitCode(request, userId)
                 .map(ResponseEntity::ok)
@@ -65,7 +67,7 @@ public class SubmissionController {
      */
     @GetMapping("/my-submissions")
     public ResponseEntity<List<Submission>> getMySubmissions(Authentication authentication) {
-        String userId = String.valueOf(getUserIdFromAuth(authentication));
+        String userId = getUserIdFromAuth(authentication);
         List<Submission> submissions = submissionService.getUserSubmissions(userId);
         return ResponseEntity.ok(submissions);
     }
@@ -74,9 +76,18 @@ public class SubmissionController {
      * Get specific submission details
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Submission> getSubmission(@PathVariable Long id) {
-        // Add authorization check here
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Submission> getSubmission(@PathVariable Long id, Authentication authentication) {
+        String userId = getUserIdFromAuth(authentication);
+        Submission submission = submissionService.getSubmissionById(id);
+
+        boolean isOwner = submission.getUser() != null && userId.equals(submission.getUser().getId());
+        boolean isAdmin = hasAuthority(authentication, "ROLE_ADMIN");
+
+        if (!isOwner && !isAdmin) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền truy cập submission này");
+        }
+
+        return ResponseEntity.ok(submission);
     }
 
     /**
@@ -88,9 +99,25 @@ public class SubmissionController {
         return ResponseEntity.ok(submissions);
     }
 
-    private Long getUserIdFromAuth(Authentication authentication) {
-        // Extract user ID from JWT token
-        // This depends on your authentication implementation
-        return 1L; // Replace with actual implementation
+    private String getUserIdFromAuth(Authentication authentication) {
+        Authentication auth = authentication != null ? authentication : SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bạn cần đăng nhập");
+        }
+
+        Object principal = auth.getPrincipal();
+        if (principal instanceof com.showtime.onlinejudgecode.auth.model.CustomUserDetails userDetails) {
+            return userDetails.getId();
+        }
+
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Không thể xác thực người dùng");
+    }
+
+    private boolean hasAuthority(Authentication authentication, String authority) {
+        return authentication.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(authority::equals);
     }
 }
