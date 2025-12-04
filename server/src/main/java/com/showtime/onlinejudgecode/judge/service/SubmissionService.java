@@ -14,13 +14,17 @@ import com.showtime.onlinejudgecode.judge.repository.ProblemRepository;
 import com.showtime.onlinejudgecode.judge.repository.SubmissionRepository;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -30,16 +34,26 @@ public class SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final ProblemRepository problemRepository;
     private final UserRepository userRepository;
+    private final Set<Integer> allowedLanguageIds;
+    private final int maxSourceSizeBytes;
 
-    public SubmissionService(Judge0Service judge0Service, SubmissionRepository submissionRepository, ProblemRepository problemRepository, UserRepository userRepository) {
+    public SubmissionService(Judge0Service judge0Service,
+                             SubmissionRepository submissionRepository,
+                             ProblemRepository problemRepository,
+                             UserRepository userRepository,
+                             @Value("${judge0.allowed-language-ids:52,62,71}") List<Integer> allowedLanguageIds,
+                             @Value("${judge0.max-source-size-bytes:65536}") int maxSourceSizeBytes) {
         this.judge0Service = judge0Service;
         this.submissionRepository = submissionRepository;
         this.problemRepository = problemRepository;
         this.userRepository = userRepository;
+        this.allowedLanguageIds = allowedLanguageIds.stream().collect(Collectors.toSet());
+        this.maxSourceSizeBytes = maxSourceSizeBytes;
     }
 
     @Transactional
     public Mono<SubmissionResponse> submitCode(SubmissionRequest request, String userId) {
+        validateSubmissionRequest(request);
         Problem problem = problemRepository.findById(request.getProblemId())
                 .orElseThrow(() -> new RuntimeException("Problem not found"));
         User user = userRepository.findById(userId);
@@ -130,5 +144,21 @@ public class SubmissionService {
 
     public List<Submission> getProblemSubmissions(Long problemId) {
         return submissionRepository.findByProblemIdOrderBySubmittedAtDesc(problemId);
+    }
+
+    private void validateSubmissionRequest(SubmissionRequest request) {
+        if (request.getLanguage_id() == null || !allowedLanguageIds.contains(request.getLanguage_id())) {
+            throw new IllegalArgumentException("Unsupported language_id: " + request.getLanguage_id());
+        }
+
+        String sourceCode = request.getSource_code();
+        if (sourceCode == null || sourceCode.isBlank()) {
+            throw new IllegalArgumentException("Source code must not be empty");
+        }
+
+        int sourceSize = sourceCode.getBytes(StandardCharsets.UTF_8).length;
+        if (sourceSize > maxSourceSizeBytes) {
+            throw new IllegalArgumentException("Source code exceeds max size of " + maxSourceSizeBytes + " bytes");
+        }
     }
 }

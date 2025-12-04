@@ -1,6 +1,13 @@
 judge0:
     api:
         url: http://localhost:2358
+    client:
+        connect-timeout: 5000
+        response-timeout: 10000
+        read-timeout: 10000
+        write-timeout: 10000
+    allowed-language-ids: [52, 62, 71]
+    max-source-size-bytes: 65536
 
 spring:
     application:

@@ -6,9 +6,11 @@ import com.showtime.onlinejudgecode.judge.dto.response.Judge0Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
 import reactor.util.retry.Retry;
@@ -21,11 +23,8 @@ public class Judge0Service {
     private final WebClient webClient;
 
     private static final Logger log = LoggerFactory.getLogger(Judge0Service.class);
-    @Value("${judge0.api.url}")
-    private String judge0Url;
-
-    public Judge0Service(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.build();
+    public Judge0Service(@Qualifier("judge0WebClient") WebClient webClient) {
+        this.webClient = webClient;
     }
 
     /**
@@ -33,22 +32,29 @@ public class Judge0Service {
      */
     public Mono<String> submitCode(Judge0Request request) {
         return webClient.post()
-                .uri(judge0Url + "/submissions?base64_encoded=false&wait=false")
+                .uri("/submissions?base64_encoded=false&wait=false")
                 .bodyValue(request)
                 .retrieve()
                 .onStatus(
-                        status -> status.value() >= 400,
+                        HttpStatus::isError,
                         response -> response.bodyToMono(String.class)
                                 .flatMap(body -> {
-                                    log.error("Judge0 API Error: {}", body);
-                                    return Mono.error(new RuntimeException("Judge0 error: " + body));
+                                    log.error("Judge0 API Error when submitting: status={}", response.statusCode());
+                                    log.debug("Judge0 submission error body: {}", body);
+                                    return Mono.error(WebClientResponseException.create(
+                                            response.statusCode().value(),
+                                            "Judge0 error", response.headers().asHttpHeaders(), body.getBytes(), null));
                                 })
                 )
                 .bodyToMono(Judge0Response.class)
                 .map(Judge0Response::getToken)
                 .doOnSuccess(token -> log.info("Code submitted successfully. Token: {}", token))
                 .doOnError(e -> log.error("Error submitting code", e))
-                .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)));
+                .retryWhen(
+                        Retry.backoff(3, Duration.ofSeconds(2))
+                                .filter(ex -> ex instanceof WebClientResponseException
+                                        && ((WebClientResponseException) ex).getStatusCode().is5xxServerError())
+                );
     }
 
     /**
@@ -56,8 +62,17 @@ public class Judge0Service {
      */
     public Mono<Judge0Response> getSubmissionResult(String token) {
         return webClient.get()
-                .uri(judge0Url + "/submissions/" + token + "?base64_encoded=false")
+                .uri("/submissions/" + token + "?base64_encoded=false")
                 .retrieve()
+                .onStatus(
+                        HttpStatus::isError,
+                        response -> response.createException()
+                                .flatMap(ex -> {
+                                    log.error("Judge0 API Error when fetching result: status={}", response.statusCode());
+                                    log.debug("Judge0 result error body: {}", ex.getResponseBodyAsString());
+                                    return Mono.error(ex);
+                                })
+                )
                 .bodyToMono(Judge0Response.class)
                 .doOnSuccess(response -> log.info("Got result for token {}: {}",
                         token, response.getStatus().getDescription()))

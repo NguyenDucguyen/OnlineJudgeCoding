@@ -50,6 +50,13 @@ public class SubmissionController {
                     return Mono.just(ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).body(err));
                 })
 
+                .onErrorResume(IllegalArgumentException.class, ex -> {
+                    SubmissionResponse err = new SubmissionResponse();
+                    err.setStatus("INVALID_REQUEST");
+                    err.setErrorMessage(ex.getMessage());
+                    return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err));
+                })
+
                 .onErrorResume(ex -> {
                     SubmissionResponse err = new SubmissionResponse();
                     err.setStatus("INTERNAL_ERROR");
