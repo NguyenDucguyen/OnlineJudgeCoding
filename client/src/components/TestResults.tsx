@@ -8,6 +8,8 @@ interface TestResult {
   actual: string;
   passed: boolean;
   executionTime: number;
+  memory: number;
+  hidden?: boolean;
 }
 
 interface TestResultsProps {
@@ -35,8 +37,8 @@ const TestResults: React.FC<TestResultsProps> = ({ results }) => {
             <div
               key={index}
               className={`border rounded-lg p-4 ${
-                result.passed 
-                  ? 'border-green-200 bg-green-50' 
+                result.passed
+                  ? 'border-green-200 bg-green-50'
                   : 'border-red-200 bg-red-50'
               }`}
             >
@@ -51,34 +53,42 @@ const TestResults: React.FC<TestResultsProps> = ({ results }) => {
                     Test Case {result.testCase}
                   </span>
                 </div>
-                <div className="flex items-center space-x-1 text-sm text-gray-600">
-                  <Clock className="w-4 h-4" />
-                  <span>{result.executionTime}ms</span>
+                <div className="flex items-center space-x-3 text-sm text-gray-600">
+                  <div className="flex items-center space-x-1">
+                    <Clock className="w-4 h-4" />
+                    <span>{result.executionTime}ms</span>
+                  </div>
+                  <span>•</span>
+                  <span>{result.memory} KB</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="font-medium text-gray-700">Input:</span>
-                  <div className="mt-1 p-2 bg-white rounded border font-mono text-xs break-all">
-                    {result.input}
+              {!result.hidden ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium text-gray-700">Input:</span>
+                    <div className="mt-1 p-2 bg-white rounded border font-mono text-xs break-all">
+                      {result.input}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Expected:</span>
+                    <div className="mt-1 p-2 bg-white rounded border font-mono text-xs break-all">
+                      {result.expected}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Your Output:</span>
+                    <div className={`mt-1 p-2 bg-white rounded border font-mono text-xs break-all ${
+                      !result.passed ? 'border-red-300' : ''
+                    }`}>
+                      {result.actual}
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <span className="font-medium text-gray-700">Expected:</span>
-                  <div className="mt-1 p-2 bg-white rounded border font-mono text-xs break-all">
-                    {result.expected}
-                  </div>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">Your Output:</span>
-                  <div className={`mt-1 p-2 bg-white rounded border font-mono text-xs break-all ${
-                    !result.passed ? 'border-red-300' : ''
-                  }`}>
-                    {result.actual}
-                  </div>
-                </div>
-              </div>
+              ) : (
+                <div className="text-sm text-gray-700 font-medium">Hidden test case - details are concealed.</div>
+              )}
             </div>
           ))}
         </div>

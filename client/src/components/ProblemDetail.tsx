@@ -1,8 +1,20 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ArrowLeft, BookOpen, TestTube, Code2 } from 'lucide-react';
 import { Problem } from '../types';
 import CodeEditor from './CodeEditor';
 import TestResults from './TestResults';
+import { submitToJudge0 } from '../services/judge0';
+
+interface ExecutionResult {
+  testCase: number;
+  input: string;
+  expected: string;
+  actual: string;
+  passed: boolean;
+  executionTime: number;
+  memory: number;
+  hidden?: boolean;
+}
 
 interface ProblemDetailProps {
   problem: Problem;
@@ -11,35 +23,94 @@ interface ProblemDetailProps {
 
 const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
   const [activeTab, setActiveTab] = useState<'description' | 'solution'>('description');
-  const [testResults, setTestResults] = useState<any[]>([]);
+  const [testResults, setTestResults] = useState<ExecutionResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState('');
+
+  const languageMap = useMemo(() => ({
+    javascript: 63,
+    python: 71,
+    java: 62,
+    cpp: 54
+  }), []);
+
+  const executeTestCases = async (code: string, languageId: number) => {
+    const results = await Promise.all(
+      problem.testCases.map(async (testCase, index) => {
+        const response = await submitToJudge0({
+          source_code: code,
+          language_id: languageId,
+          stdin: testCase.input,
+          expected_output: testCase.expectedOutput
+        });
+
+        const output =
+          response.stdout?.trim() ??
+          response.stderr?.trim() ??
+          response.compile_output?.trim() ??
+          '';
+
+        const passed = response.status?.id === 3;
+        const executionTime = response.time ? Math.round(Number(response.time) * 1000) : 0;
+
+        return {
+          testCase: index + 1,
+          input: testCase.hidden ? 'Hidden test case' : testCase.input,
+          expected: testCase.hidden ? 'Hidden' : testCase.expectedOutput,
+          actual: testCase.hidden ? 'Hidden' : output,
+          passed,
+          executionTime,
+          memory: response.memory ?? 0,
+          hidden: testCase.hidden
+        } as ExecutionResult;
+      })
+    );
+
+    return results;
+  };
 
   const handleRunCode = async (code: string) => {
+    setSubmissionStatus(null);
+    const languageId = languageMap[selectedLanguage as keyof typeof languageMap];
+    if (!languageId) {
+      setSubmissionStatus('Please select a valid language before running.');
+      return;
+    }
+
     setIsRunning(true);
-    // Simulate code execution
-    setTimeout(() => {
-      const results = problem.testCases.filter(tc => !tc.hidden).map((testCase, index) => ({
-        testCase: index + 1,
-        input: testCase.input,
-        expected: testCase.expectedOutput,
-        actual: testCase.expectedOutput, // Mock: assume correct for demo
-        passed: Math.random() > 0.3, // Random pass/fail for demo
-        executionTime: Math.floor(Math.random() * 100) + 10
-      }));
+    try {
+      const results = await executeTestCases(code, languageId);
+
       setTestResults(results);
+    } catch (error) {
+      console.error('Run code error', error);
+      setSubmissionStatus('Failed to run code. Please try again.');
+    } finally {
       setIsRunning(false);
-    }, 2000);
+    }
   };
 
   const handleSubmitCode = async (code: string) => {
+    const languageId = languageMap[selectedLanguage as keyof typeof languageMap];
+    if (!languageId) {
+      setSubmissionStatus('Please select a valid language before submitting.');
+      return;
+    }
+
     setIsRunning(true);
-    // Simulate submission
-    setTimeout(() => {
-      const passed = Math.random() > 0.4;
-      setSubmissionStatus(passed ? 'Accepted' : 'Wrong Answer');
+    try {
+      const results = await executeTestCases(code, languageId);
+
+      setTestResults(results);
+      const allPassed = results.every((result) => result.passed);
+      setSubmissionStatus(allPassed ? 'Accepted' : 'Wrong Answer');
+    } catch (error) {
+      console.error('Submit code error', error);
+      setSubmissionStatus('Submission failed. Please try again.');
+    } finally {
       setIsRunning(false);
-    }, 3000);
+    }
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -168,10 +239,12 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
         {/* Right Panel - Code Editor */}
         <div className="space-y-6">
           <CodeEditor
-            language="javascript"
+            language={selectedLanguage}
+            onLanguageChange={setSelectedLanguage}
             onRunCode={handleRunCode}
             onSubmitCode={handleSubmitCode}
             isRunning={isRunning}
+            isSubmitDisabled={!languageMap[selectedLanguage as keyof typeof languageMap]}
           />
 
           {/* Test Results */}

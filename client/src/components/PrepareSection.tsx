@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, SortAsc } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Problem } from '../types';
 import ProblemCard from './ProblemCard';
 
@@ -21,13 +21,14 @@ const PrepareSection: React.FC<PrepareSectionProps> = ({ problems, onProblemSele
                          problem.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesDifficulty = !selectedDifficulty || problem.difficulty === selectedDifficulty;
     const matchesCategory = !selectedCategory || problem.category === selectedCategory;
-    
+
     return matchesSearch && matchesDifficulty && matchesCategory;
   }).sort((a, b) => {
     switch (sortBy) {
-      case 'difficulty':
+      case 'difficulty': {
         const difficultyOrder = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
         return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
+      }
       case 'title':
         return a.title.localeCompare(b.title);
       case 'solved':
