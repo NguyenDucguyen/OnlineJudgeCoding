@@ -8,6 +8,8 @@ import SubmissionHistory from './components/SubmissionHistory';
 import { problems as fallbackProblems } from './data/problems';
 import { Problem } from './types';
 import { fetchProblems } from './services/api';
+import AuthPanel from './components/AuthPanel';
+import { useAuth } from './context/AuthContext';
 
 function App() {
   const [activeTab, setActiveTab] = useState('prepare');
@@ -15,12 +17,13 @@ function App() {
   const [problems, setProblems] = useState<Problem[]>(fallbackProblems as Problem[]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { token, user, logout } = useAuth();
 
   useEffect(() => {
     const loadProblems = async () => {
       setLoading(true);
       try {
-        const remote = await fetchProblems();
+        const remote = await fetchProblems(token || undefined);
         const normalized = remote.map((p) => ({
           ...p,
           category: p.category || 'General',
@@ -41,7 +44,7 @@ function App() {
     };
 
     loadProblems();
-  }, []);
+  }, [token]);
 
   const formatDifficulty = (difficulty: string) => {
     const normalized = difficulty?.toUpperCase();
@@ -67,7 +70,14 @@ function App() {
 
   const renderContent = () => {
     if (selectedProblem) {
-      return <ProblemDetail problem={selectedProblem} onBack={handleBackToProblems} />;
+      return (
+        <ProblemDetail
+          problem={selectedProblem}
+          onBack={handleBackToProblems}
+          currentUser={user}
+          authToken={token}
+        />
+      );
     }
 
     switch (activeTab) {
@@ -85,7 +95,16 @@ function App() {
       case 'compete':
         return <CompeteSection />;
       case 'profile':
-        return <SubmissionHistory />;
+        return user ? (
+          <SubmissionHistory />
+        ) : (
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div className="bg-white border rounded-lg p-6 text-center">
+              <p className="text-lg font-semibold text-gray-900 mb-2">Sign in to view your submission history</p>
+              <p className="text-gray-600 mb-4">Your past submissions will appear here once you are logged in.</p>
+            </div>
+          </div>
+        );
       default:
         return (
           <PrepareSection
@@ -100,7 +119,8 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header activeTab={activeTab} onTabChange={setActiveTab} />
+      <Header activeTab={activeTab} onTabChange={setActiveTab} user={user} onLogout={logout} />
+      <AuthPanel />
       <main>
         {renderContent()}
       </main>
