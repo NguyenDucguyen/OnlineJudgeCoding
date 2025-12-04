@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowLeft, BookOpen, TestTube, Code2 } from 'lucide-react';
-import { Problem, SubmissionResponse } from '../types';
+import { Problem, SubmissionResponse, User } from '../types';
 import CodeEditor from './CodeEditor';
 import TestResults from './TestResults';
 import { submitSolution } from '../services/api';
@@ -8,9 +8,11 @@ import { submitSolution } from '../services/api';
 interface ProblemDetailProps {
   problem: Problem;
   onBack: () => void;
+  currentUser?: User | null;
+  authToken?: string | null;
 }
 
-const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
+const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack, currentUser, authToken }) => {
   const [activeTab, setActiveTab] = useState<'description' | 'solution'>('description');
   const [testResults, setTestResults] = useState<any[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -24,8 +26,6 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
     java: { id: 62, label: 'Java' },
     cpp: { id: 54, label: 'C++' },
   }), []);
-
-  const userId = import.meta.env.VITE_DEMO_USER_ID || 'demo-user';
 
   const buildTestResults = (response: SubmissionResponse) => {
     const visibleCases = problem.testCases || [];
@@ -41,6 +41,11 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
   };
 
   const runSubmission = async (code: string) => {
+    if (!currentUser) {
+      setErrorMessage('Please sign in before submitting solutions.');
+      setSubmissionStatus('Unauthenticated');
+      return;
+    }
     setIsRunning(true);
     setErrorMessage(null);
     try {
@@ -48,7 +53,8 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
         problemId: Number(problem.id),
         languageId: languageMap[language].id,
         sourceCode: code,
-        userId,
+        userId: currentUser.id,
+        token: authToken,
       });
       setTestResults(buildTestResults(response));
       setSubmissionStatus(response.status);
