@@ -4,6 +4,7 @@ import com.showtime.onlinejudgecode.judge.dto.request.ContestRegistrationRequest
 import com.showtime.onlinejudgecode.judge.dto.request.ContestRequest;
 import com.showtime.onlinejudgecode.judge.entity.Contest;
 import com.showtime.onlinejudgecode.judge.entity.ContestRegistration;
+import com.showtime.onlinejudgecode.judge.entity.Problem;
 import com.showtime.onlinejudgecode.judge.service.impl.ContestService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -72,6 +73,15 @@ public class ContestController {
     public ResponseEntity<List<ContestRegistration>> getRegistrations(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(contestService.getRegistrations(id));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/{id}/problems")
+    public ResponseEntity<List<Problem>> getContestProblems(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(contestService.getContestProblems(id));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.notFound().build();
         }

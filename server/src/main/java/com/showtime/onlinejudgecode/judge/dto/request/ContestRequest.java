@@ -13,6 +13,7 @@ public class ContestRequest {
     private String difficulty;
     private String status;
     private List<String> prizes;
+    private List<Long> problemIds;
 
     public String getTitle() {
         return title;
@@ -84,5 +85,13 @@ public class ContestRequest {
 
     public void setPrizes(List<String> prizes) {
         this.prizes = prizes;
+    }
+
+    public List<Long> getProblemIds() {
+        return problemIds;
+    }
+
+    public void setProblemIds(List<Long> problemIds) {
+        this.problemIds = problemIds;
     }
 }

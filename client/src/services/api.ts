@@ -1,4 +1,15 @@
-import { ApiResponse, AuthResponse, Problem, SubmissionHistory, SubmissionResponse, User } from '../types';
+import {
+  ApiResponse,
+  AuthResponse,
+  CertificateAward,
+  Certification,
+  Contest,
+  ContestRegistration,
+  Problem,
+  SubmissionHistory,
+  SubmissionResponse,
+  User,
+} from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
@@ -105,4 +116,42 @@ export async function registerUser(payload: RegisterPayload): Promise<User> {
   });
 
   return handleApiResponse<User>(res);
+}
+
+export async function fetchContests(token?: string): Promise<Contest[]> {
+  const res = await fetch(`${API_URL}/api/contests`, { headers: withAuthHeaders(token) });
+  return handleResponse<Contest[]>(res);
+}
+
+export async function fetchContest(contestId: number, token?: string): Promise<Contest> {
+  const res = await fetch(`${API_URL}/api/contests/${contestId}`, { headers: withAuthHeaders(token) });
+  return handleResponse<Contest>(res);
+}
+
+export async function fetchContestProblems(contestId: number, token?: string): Promise<Problem[]> {
+  const res = await fetch(`${API_URL}/api/contests/${contestId}/problems`, { headers: withAuthHeaders(token) });
+  return handleResponse<Problem[]>(res);
+}
+
+export async function registerForContest(contestId: number, userId: string, token?: string): Promise<ContestRegistration> {
+  const res = await fetch(`${API_URL}/api/contests/${contestId}/register`, {
+    method: 'POST',
+    headers: withAuthHeaders(token),
+    body: JSON.stringify({ userId }),
+  });
+
+  return handleResponse<ContestRegistration>(res);
+}
+
+export async function fetchCertifications(token?: string): Promise<Certification[]> {
+  const res = await fetch(`${API_URL}/api/certifications`, { headers: withAuthHeaders(token) });
+  return handleResponse<Certification[]>(res);
+}
+
+export async function fetchCertificateAwards(certificationId: number, token?: string): Promise<CertificateAward[]> {
+  const res = await fetch(`${API_URL}/api/certifications/${certificationId}/awards`, {
+    headers: withAuthHeaders(token),
+  });
+
+  return handleResponse<CertificateAward[]>(res);
 }

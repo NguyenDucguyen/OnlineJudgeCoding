@@ -26,6 +26,48 @@ export interface TestCase {
   hidden: boolean;
 }
 
+export interface Contest {
+  id: number;
+  title: string;
+  type: string;
+  startTime?: string;
+  endTime?: string;
+  durationMinutes?: number;
+  participantCount?: number;
+  difficulty?: string;
+  status?: string;
+  prizes?: string[];
+  problems?: Problem[];
+}
+
+export interface ContestRegistration {
+  id: number;
+  contest?: Contest;
+  userId: string;
+  registeredAt?: string;
+}
+
+export interface Certification {
+  id: number;
+  title: string;
+  description: string;
+  durationMinutes?: number;
+  questionCount?: number;
+  participantCount?: number;
+  difficulty?: string;
+  passingScore?: number;
+}
+
+export interface CertificateAward {
+  id: number;
+  certification?: Certification;
+  userId: string;
+  score?: number;
+  passed?: boolean;
+  issuedAt?: string;
+  verificationCode?: string;
+}
+
 export interface Submission {
   id: string;
   problemId: string;

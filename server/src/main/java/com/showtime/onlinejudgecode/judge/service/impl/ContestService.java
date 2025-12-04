@@ -4,25 +4,33 @@ import com.showtime.onlinejudgecode.judge.dto.request.ContestRegistrationRequest
 import com.showtime.onlinejudgecode.judge.dto.request.ContestRequest;
 import com.showtime.onlinejudgecode.judge.entity.Contest;
 import com.showtime.onlinejudgecode.judge.entity.ContestRegistration;
+import com.showtime.onlinejudgecode.judge.entity.Problem;
 import com.showtime.onlinejudgecode.judge.repository.ContestRegistrationRepository;
 import com.showtime.onlinejudgecode.judge.repository.ContestRepository;
+import com.showtime.onlinejudgecode.judge.repository.ProblemRepository;
 import com.showtime.onlinejudgecode.judge.service.IContestService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class ContestService implements IContestService {
 
     private final ContestRepository contestRepository;
     private final ContestRegistrationRepository contestRegistrationRepository;
+    private final ProblemRepository problemRepository;
 
     public ContestService(ContestRepository contestRepository,
-                          ContestRegistrationRepository contestRegistrationRepository) {
+                          ContestRegistrationRepository contestRegistrationRepository,
+                          ProblemRepository problemRepository) {
         this.contestRepository = contestRepository;
         this.contestRegistrationRepository = contestRegistrationRepository;
+        this.problemRepository = problemRepository;
     }
 
     @Override
@@ -87,6 +95,12 @@ public class ContestService implements IContestService {
         return contestRegistrationRepository.findByContestId(contestId);
     }
 
+    @Override
+    public List<Problem> getContestProblems(Long contestId) {
+        Contest contest = getContestById(contestId);
+        return contest.getProblems();
+    }
+
     private void mapContestFields(Contest contest, ContestRequest request) {
         contest.setTitle(request.getTitle());
         contest.setType(request.getType());
@@ -97,5 +111,22 @@ public class ContestService implements IContestService {
         contest.setDifficulty(request.getDifficulty());
         contest.setStatus(request.getStatus());
         contest.setPrizes(request.getPrizes());
+
+        if (request.getProblemIds() != null) {
+            Set<Long> requestedIds = request.getProblemIds().stream().collect(Collectors.toSet());
+            List<Problem> problems = new ArrayList<>();
+
+            if (!requestedIds.isEmpty()) {
+                List<Problem> found = problemRepository.findAllById(requestedIds);
+
+                if (found.size() != requestedIds.size()) {
+                    throw new IllegalArgumentException("One or more problem IDs are invalid");
+                }
+
+                problems.addAll(found);
+            }
+
+            contest.setProblems(problems);
+        }
     }
 }

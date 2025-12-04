@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -86,6 +87,8 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedContests() {
+        List<Problem> problems = problemRepository.findAll();
+
         Contest weeklyContest = new Contest();
         weeklyContest.setTitle("Weekly Contest 375");
         weeklyContest.setType("Weekly");
@@ -95,6 +98,7 @@ public class DataSeeder implements CommandLineRunner {
         weeklyContest.setDifficulty("All Levels");
         weeklyContest.setStatus("upcoming");
         weeklyContest.setPrizes(List.of("$500", "$300", "$200"));
+        weeklyContest.setProblems(selectProblems(problems, 0, 3));
 
         Contest algorithmChallenge = new Contest();
         algorithmChallenge.setTitle("Algorithm Master Challenge");
@@ -105,6 +109,7 @@ public class DataSeeder implements CommandLineRunner {
         algorithmChallenge.setDifficulty("Advanced");
         algorithmChallenge.setStatus("upcoming");
         algorithmChallenge.setPrizes(List.of("$2000", "$1000", "$500"));
+        algorithmChallenge.setProblems(selectProblems(problems, 1, 4));
 
         Contest weeklyPast = new Contest();
         weeklyPast.setTitle("Weekly Contest 374");
@@ -115,9 +120,27 @@ public class DataSeeder implements CommandLineRunner {
         weeklyPast.setParticipantCount(9200);
         weeklyPast.setDifficulty("All Levels");
         weeklyPast.setStatus("completed");
+        weeklyPast.setProblems(selectProblems(problems, 2, 3));
 
         contestRepository.saveAll(List.of(weeklyContest, algorithmChallenge, weeklyPast));
         log.info("✅ Seeded {} contests", contestRepository.count());
+    }
+
+    private List<Problem> selectProblems(List<Problem> available, int offset, int desiredCount) {
+        if (available == null || available.isEmpty()) {
+            log.warn("No problems available to assign to contests");
+            return List.of();
+        }
+
+        int total = available.size();
+        int count = Math.min(desiredCount, total);
+        List<Problem> selected = new ArrayList<>(count);
+
+        for (int i = 0; i < count; i++) {
+            selected.add(available.get((offset + i) % total));
+        }
+
+        return selected;
     }
 
     private void seedCertifications() {
