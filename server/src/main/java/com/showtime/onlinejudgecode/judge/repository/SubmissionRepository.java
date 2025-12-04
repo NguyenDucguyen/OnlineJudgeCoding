@@ -10,10 +10,9 @@ import java.util.List;
 @Repository
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
 
-    List<Submission> findByUserIdOrderBySubmittedAtDesc(String userId);
+    List<Submission> findByUser_IdOrderBySubmittedAtDesc(String userId);
 
-    List<Submission> findByProblemIdOrderBySubmittedAtDesc(Long problemId);
-
+    List<Submission> findByProblem_IdOrderBySubmittedAtDesc(Long problemId);
 
 }
 

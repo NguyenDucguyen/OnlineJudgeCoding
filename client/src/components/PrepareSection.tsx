@@ -6,21 +6,23 @@ import ProblemCard from './ProblemCard';
 interface PrepareSectionProps {
   problems: Problem[];
   onProblemSelect: (problem: Problem) => void;
+  isLoading?: boolean;
+  error?: string | null;
 }
 
-const PrepareSection: React.FC<PrepareSectionProps> = ({ problems, onProblemSelect }) => {
+const PrepareSection: React.FC<PrepareSectionProps> = ({ problems, onProblemSelect, isLoading = false, error }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortBy, setSortBy] = useState('title');
 
-  const categories = Array.from(new Set(problems.map(p => p.category)));
+  const categories = Array.from(new Set(problems.map(p => p.category || 'General')));
   
   const filteredProblems = problems.filter(problem => {
     const matchesSearch = problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          problem.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesDifficulty = !selectedDifficulty || problem.difficulty === selectedDifficulty;
-    const matchesCategory = !selectedCategory || problem.category === selectedCategory;
+    const matchesCategory = !selectedCategory || (problem.category || 'General') === selectedCategory;
     
     return matchesSearch && matchesDifficulty && matchesCategory;
   }).sort((a, b) => {
@@ -51,6 +53,9 @@ const PrepareSection: React.FC<PrepareSectionProps> = ({ problems, onProblemSele
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Prepare</h1>
         <p className="text-gray-600">Master coding skills through practice problems</p>
+        {error && (
+          <p className="text-sm text-red-600 mt-2">{error}</p>
+        )}
       </div>
 
       {/* Stats */}
@@ -136,7 +141,11 @@ const PrepareSection: React.FC<PrepareSectionProps> = ({ problems, onProblemSele
         ))}
       </div>
 
-      {filteredProblems.length === 0 && (
+      {isLoading && (
+        <div className="text-center py-8 text-gray-500">Loading problems...</div>
+      )}
+
+      {!isLoading && filteredProblems.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 mb-2">No problems found</div>
           <p className="text-sm text-gray-600">Try adjusting your search criteria</p>

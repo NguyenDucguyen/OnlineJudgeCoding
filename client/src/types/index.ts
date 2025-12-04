@@ -1,15 +1,17 @@
 export interface Problem {
-  id: string;
+  id: number;
   title: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  category: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard' | string;
+  category?: string;
   description: string;
-  examples: Example[];
+  examples?: Example[];
   testCases: TestCase[];
-  constraints: string[];
-  tags: string[];
-  solved: boolean;
-  attempts: number;
+  constraints?: string[];
+  tags?: string[];
+  solved?: boolean;
+  attempts?: number;
+  timeLimit?: number;
+  memoryLimit?: number;
 }
 
 export interface Example {
@@ -32,6 +34,34 @@ export interface Submission {
   status: 'Accepted' | 'Wrong Answer' | 'Time Limit Exceeded' | 'Runtime Error';
   score: number;
   timestamp: Date;
+}
+
+export interface SubmissionHistory {
+  id: number;
+  problemId: number;
+  problemTitle: string;
+  status: string;
+  runtime: number | null;
+  memory: number | null;
+  languageId: number | null;
+  passedTestCases: number | null;
+  totalTestCases: number | null;
+  submittedAt: string;
+  score: number;
+  output?: string;
+  errorMessage?: string;
+}
+
+export interface SubmissionResponse {
+  submissionId: number;
+  status: string;
+  runtime: number | null;
+  memory: number | null;
+  output?: string;
+  errorMessage?: string;
+  passedTestCases: number | null;
+  totalTestCases: number | null;
+  score: number;
 }
 
 export interface User {

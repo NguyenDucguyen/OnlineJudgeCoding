@@ -1,6 +1,8 @@
 package com.showtime.onlinejudgecode.judge.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -16,8 +18,9 @@ public class Problem {
 
     private String difficulty; // EASY, MEDIUM, HARD
 
-    @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL)
-    private List<TestCase> testCases;
+    @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<TestCase> testCases = new ArrayList<>();
 
     private Integer timeLimit; // milliseconds
     private Integer memoryLimit; // KB

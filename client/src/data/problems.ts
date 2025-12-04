@@ -2,7 +2,7 @@ import { Problem } from '../types';
 
 export const problems: Problem[] = [
   {
-    id: '1',
+    id: 1,
     title: 'Two Sum',
     difficulty: 'Easy',
     category: 'Arrays',
@@ -50,7 +50,7 @@ You can return the answer in any order.`,
     attempts: 0
   },
   {
-    id: '2',
+    id: 2,
     title: 'Reverse String',
     difficulty: 'Easy',
     category: 'Strings',
@@ -88,7 +88,7 @@ You must do this by modifying the input array in-place with O(1) extra memory.`,
     attempts: 2
   },
   {
-    id: '3',
+    id: 3,
     title: 'Binary Tree Traversal',
     difficulty: 'Medium',
     category: 'Trees',
@@ -126,7 +126,7 @@ Follow up: Recursive solution is trivial, could you do it iteratively?`,
     attempts: 5
   },
   {
-    id: '4',
+    id: 4,
     title: 'Merge K Sorted Lists',
     difficulty: 'Hard',
     category: 'Linked Lists',
