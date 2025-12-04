@@ -3,6 +3,18 @@ import { ArrowLeft, BookOpen, TestTube, Code2 } from 'lucide-react';
 import { Problem } from '../types';
 import CodeEditor from './CodeEditor';
 import TestResults from './TestResults';
+import { LANGUAGE_ID_MAP, submitToJudge0 } from '../services/judge0';
+
+interface ExecutionResult {
+  testCase: number;
+  input: string;
+  expected: string;
+  actual: string;
+  passed: boolean;
+  executionTime: number;
+  hidden?: boolean;
+  statusText?: string;
+}
 
 interface ProblemDetailProps {
   problem: Problem;
@@ -11,35 +23,72 @@ interface ProblemDetailProps {
 
 const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
   const [activeTab, setActiveTab] = useState<'description' | 'solution'>('description');
-  const [testResults, setTestResults] = useState<any[]>([]);
+  const [testResults, setTestResults] = useState<ExecutionResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
+
+  const executeTestCases = async (code: string) => {
+    const languageId = LANGUAGE_ID_MAP[selectedLanguage];
+
+    if (!languageId) {
+      setSubmissionStatus('Please select a language before running code.');
+      return [];
+    }
+
+    setIsRunning(true);
+    setSubmissionStatus(null);
+
+    try {
+      const results = await Promise.all(problem.testCases.map(async (testCase, index) => {
+        const submission = await submitToJudge0({
+          source_code: code,
+          language_id: languageId,
+          stdin: testCase.input,
+          expected_output: testCase.expectedOutput
+        });
+
+        const actualOutput = (submission.stdout ?? submission.compile_output ?? submission.stderr ?? submission.message ?? '').trim();
+        const statusDescription = submission.status?.description || 'Unknown';
+        const expected = testCase.expectedOutput.trim();
+        const passed = statusDescription === 'Accepted' || actualOutput === expected;
+        const executionTime = submission.time ? Math.round(parseFloat(submission.time) * 1000) : 0;
+
+        return {
+          testCase: index + 1,
+          input: testCase.input,
+          expected: testCase.hidden ? 'Hidden' : testCase.expectedOutput,
+          actual: testCase.hidden ? 'Hidden' : (actualOutput || 'No output'),
+          passed,
+          executionTime,
+          hidden: testCase.hidden,
+          statusText: statusDescription
+        };
+      }));
+
+      setTestResults(results);
+      return results;
+    } catch (error) {
+      setSubmissionStatus('Failed to execute code.');
+      return [];
+    } finally {
+      setIsRunning(false);
+    }
+  };
 
   const handleRunCode = async (code: string) => {
-    setIsRunning(true);
-    // Simulate code execution
-    setTimeout(() => {
-      const results = problem.testCases.filter(tc => !tc.hidden).map((testCase, index) => ({
-        testCase: index + 1,
-        input: testCase.input,
-        expected: testCase.expectedOutput,
-        actual: testCase.expectedOutput, // Mock: assume correct for demo
-        passed: Math.random() > 0.3, // Random pass/fail for demo
-        executionTime: Math.floor(Math.random() * 100) + 10
-      }));
-      setTestResults(results);
-      setIsRunning(false);
-    }, 2000);
+    await executeTestCases(code);
   };
 
   const handleSubmitCode = async (code: string) => {
-    setIsRunning(true);
-    // Simulate submission
-    setTimeout(() => {
-      const passed = Math.random() > 0.4;
-      setSubmissionStatus(passed ? 'Accepted' : 'Wrong Answer');
-      setIsRunning(false);
-    }, 3000);
+    const results = await executeTestCases(code);
+
+    if (!results.length) return;
+
+    const allPassed = results.every(result => result.passed);
+    const firstFailed = results.find(result => !result.passed);
+
+    setSubmissionStatus(allPassed ? 'Accepted' : firstFailed?.statusText || 'Wrong Answer');
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -168,10 +217,12 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
         {/* Right Panel - Code Editor */}
         <div className="space-y-6">
           <CodeEditor
-            language="javascript"
+            language={selectedLanguage}
+            onLanguageChange={setSelectedLanguage}
             onRunCode={handleRunCode}
             onSubmitCode={handleSubmitCode}
             isRunning={isRunning}
+            disableSubmit={!LANGUAGE_ID_MAP[selectedLanguage]}
           />
 
           {/* Test Results */}
