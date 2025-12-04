@@ -1,6 +1,7 @@
 package com.showtime.onlinejudgecode.auth.configuration;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -27,11 +28,17 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
     private final UserDetailsServiceImpl userDetailsService;
+    private final String allowedOrigins;
 
     @Autowired
-    public SecurityConfig(JwtAuthenticationFilter jwtFilter, UserDetailsServiceImpl userDetailsService) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtFilter,
+            UserDetailsServiceImpl userDetailsService,
+            @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:5173}") String allowedOrigins
+    ) {
         this.jwtFilter = jwtFilter;
         this.userDetailsService = userDetailsService;
+        this.allowedOrigins = allowedOrigins;
     }
 
     @Bean
@@ -41,6 +48,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/problems/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/submissions").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -73,11 +82,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "http://localhost:5173"      // cho dev local
-// cho dev local
-        ));
+        List<String> origins = List.of(allowedOrigins.split(","));
+        if (origins.contains("*")) {
+            config.setAllowedOriginPatterns(List.of("*"));
+        } else {
+            config.setAllowedOrigins(origins.stream().map(String::trim).toList());
+        }
         config.setAllowedMethods(List.of("GET","PATCH", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
