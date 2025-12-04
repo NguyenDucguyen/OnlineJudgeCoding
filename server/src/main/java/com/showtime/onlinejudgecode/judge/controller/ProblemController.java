@@ -1,9 +1,10 @@
 package com.showtime.onlinejudgecode.judge.controller;
 
 
+import com.showtime.onlinejudgecode.judge.dto.request.ProblemRequest;
 import com.showtime.onlinejudgecode.judge.entity.Problem;
-import com.showtime.onlinejudgecode.judge.repository.ProblemRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.showtime.onlinejudgecode.judge.service.impl.ProblemService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,38 +14,41 @@ import java.util.List;
 @RequestMapping("/api/problems")
 public class ProblemController {
 
-    @Autowired
-    private final ProblemRepository problemRepository;
+    private final ProblemService problemService;
 
-    public ProblemController(ProblemRepository problemRepository) {
-        this.problemRepository = problemRepository;
+    public ProblemController(ProblemService problemService) {
+        this.problemService = problemService;
     }
 
-    /**
-     * Get all problems
-     */
     @GetMapping
     public ResponseEntity<List<Problem>> getAllProblems() {
-        List<Problem> problems = problemRepository.findAll();
-        return ResponseEntity.ok(problems);
+        return ResponseEntity.ok(problemService.getAllProblems());
     }
 
-    /**
-     * Get problem by ID
-     */
     @GetMapping("/{id}")
     public ResponseEntity<Problem> getProblem(@PathVariable Long id) {
-        return problemRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            return ResponseEntity.ok(problemService.getProblemById(id));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    /**
-     * Create new problem (Admin only)
-     */
     @PostMapping
-    public ResponseEntity<Problem> createProblem(@RequestBody Problem problem) {
-        Problem saved = problemRepository.save(problem);
-        return ResponseEntity.ok(saved);
+    public ResponseEntity<Problem> createProblem(@RequestBody ProblemRequest request) {
+        Problem saved = problemService.createProblem(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Problem> updateProblem(@PathVariable Long id, @RequestBody ProblemRequest request) {
+        Problem updated = problemService.updateProblem(id, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProblem(@PathVariable Long id) {
+        problemService.deleteProblem(id);
+        return ResponseEntity.noContent().build();
     }
 }

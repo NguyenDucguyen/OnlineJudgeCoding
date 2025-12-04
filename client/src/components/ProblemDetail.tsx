@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ArrowLeft, BookOpen, TestTube, Code2 } from 'lucide-react';
-import { Problem } from '../types';
+import { Problem, SubmissionResponse } from '../types';
 import CodeEditor from './CodeEditor';
 import TestResults from './TestResults';
+import { submitSolution } from '../services/api';
 
 interface ProblemDetailProps {
   problem: Problem;
@@ -14,39 +15,68 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
   const [testResults, setTestResults] = useState<any[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
+  const [language, setLanguage] = useState<'javascript' | 'python' | 'java' | 'cpp'>('javascript');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const languageMap = useMemo(() => ({
+    javascript: { id: 63, label: 'JavaScript' },
+    python: { id: 71, label: 'Python' },
+    java: { id: 62, label: 'Java' },
+    cpp: { id: 54, label: 'C++' },
+  }), []);
+
+  const userId = import.meta.env.VITE_DEMO_USER_ID || 'demo-user';
+
+  const buildTestResults = (response: SubmissionResponse) => {
+    const visibleCases = problem.testCases || [];
+    const passedCount = response.passedTestCases ?? 0;
+    return visibleCases.map((testCase, index) => ({
+      testCase: index + 1,
+      input: testCase.input,
+      expected: testCase.expectedOutput,
+      actual: response.output || testCase.expectedOutput,
+      passed: index < passedCount,
+      executionTime: response.runtime || 0,
+    }));
+  };
+
+  const runSubmission = async (code: string) => {
+    setIsRunning(true);
+    setErrorMessage(null);
+    try {
+      const response = await submitSolution({
+        problemId: Number(problem.id),
+        languageId: languageMap[language].id,
+        sourceCode: code,
+        userId,
+      });
+      setTestResults(buildTestResults(response));
+      setSubmissionStatus(response.status);
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : 'Unable to submit code');
+      setSubmissionStatus('Failed');
+    } finally {
+      setIsRunning(false);
+    }
+  };
 
   const handleRunCode = async (code: string) => {
-    setIsRunning(true);
-    // Simulate code execution
-    setTimeout(() => {
-      const results = problem.testCases.filter(tc => !tc.hidden).map((testCase, index) => ({
-        testCase: index + 1,
-        input: testCase.input,
-        expected: testCase.expectedOutput,
-        actual: testCase.expectedOutput, // Mock: assume correct for demo
-        passed: Math.random() > 0.3, // Random pass/fail for demo
-        executionTime: Math.floor(Math.random() * 100) + 10
-      }));
-      setTestResults(results);
-      setIsRunning(false);
-    }, 2000);
+    await runSubmission(code);
   };
 
   const handleSubmitCode = async (code: string) => {
-    setIsRunning(true);
-    // Simulate submission
-    setTimeout(() => {
-      const passed = Math.random() > 0.4;
-      setSubmissionStatus(passed ? 'Accepted' : 'Wrong Answer');
-      setIsRunning(false);
-    }, 3000);
+    await runSubmission(code);
   };
 
   const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
+    const normalized = difficulty?.toUpperCase();
+    switch (normalized) {
       case 'Easy': return 'text-green-600 bg-green-50';
       case 'Medium': return 'text-yellow-600 bg-yellow-50';
       case 'Hard': return 'text-red-600 bg-red-50';
+      case 'EASY': return 'text-green-600 bg-green-50';
+      case 'MEDIUM': return 'text-yellow-600 bg-yellow-50';
+      case 'HARD': return 'text-red-600 bg-red-50';
       default: return 'text-gray-600 bg-gray-50';
     }
   };
@@ -102,9 +132,9 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
                     </span>
                   </div>
                   <div className="flex items-center space-x-4 text-sm text-gray-600 mb-6">
-                    <span>{problem.category}</span>
+                    <span>{problem.category || 'General'}</span>
                     <span>•</span>
-                    <span>{problem.attempts} attempts</span>
+                    <span>{problem.attempts || 0} attempts</span>
                   </div>
                 </div>
 
@@ -112,49 +142,55 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
                   <p className="text-gray-700 whitespace-pre-line">{problem.description}</p>
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Examples</h3>
-                  <div className="space-y-4">
-                    {problem.examples.map((example, index) => (
-                      <div key={index} className="bg-gray-50 rounded-lg p-4">
-                        <div className="mb-2">
-                          <span className="text-sm font-medium text-gray-700">Input:</span>
-                          <code className="ml-2 text-sm bg-white px-2 py-1 rounded border">{example.input}</code>
-                        </div>
-                        <div className="mb-2">
-                          <span className="text-sm font-medium text-gray-700">Output:</span>
-                          <code className="ml-2 text-sm bg-white px-2 py-1 rounded border">{example.output}</code>
-                        </div>
-                        {example.explanation && (
-                          <div>
-                            <span className="text-sm font-medium text-gray-700">Explanation:</span>
-                            <span className="ml-2 text-sm text-gray-600">{example.explanation}</span>
+                {problem.examples && problem.examples.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Examples</h3>
+                    <div className="space-y-4">
+                      {problem.examples.map((example, index) => (
+                        <div key={index} className="bg-gray-50 rounded-lg p-4">
+                          <div className="mb-2">
+                            <span className="text-sm font-medium text-gray-700">Input:</span>
+                            <code className="ml-2 text-sm bg-white px-2 py-1 rounded border">{example.input}</code>
                           </div>
-                        )}
-                      </div>
-                    ))}
+                          <div className="mb-2">
+                            <span className="text-sm font-medium text-gray-700">Output:</span>
+                            <code className="ml-2 text-sm bg-white px-2 py-1 rounded border">{example.output}</code>
+                          </div>
+                          {example.explanation && (
+                            <div>
+                              <span className="text-sm font-medium text-gray-700">Explanation:</span>
+                              <span className="ml-2 text-sm text-gray-600">{example.explanation}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Constraints</h3>
-                  <ul className="space-y-1">
-                    {problem.constraints.map((constraint, index) => (
-                      <li key={index} className="text-sm text-gray-700">• {constraint}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {problem.tags.map((tag) => (
-                      <span key={tag} className="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full">
-                        {tag}
-                      </span>
-                    ))}
+                {problem.constraints && problem.constraints.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Constraints</h3>
+                    <ul className="space-y-1">
+                      {problem.constraints.map((constraint, index) => (
+                        <li key={index} className="text-sm text-gray-700">• {constraint}</li>
+                      ))}
+                    </ul>
                   </div>
-                </div>
+                )}
+
+                {problem.tags && problem.tags.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {problem.tags.map((tag) => (
+                        <span key={tag} className="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center py-12 text-gray-500">
@@ -168,7 +204,8 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
         {/* Right Panel - Code Editor */}
         <div className="space-y-6">
           <CodeEditor
-            language="javascript"
+            language={language}
+            onLanguageChange={setLanguage}
             onRunCode={handleRunCode}
             onSubmitCode={handleSubmitCode}
             isRunning={isRunning}
@@ -182,27 +219,33 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
           {/* Submission Status */}
           {submissionStatus && (
             <div className={`p-4 rounded-lg ${
-              submissionStatus === 'Accepted' 
-                ? 'bg-green-50 border border-green-200' 
+              submissionStatus?.toUpperCase() === 'ACCEPTED'
+                ? 'bg-green-50 border border-green-200'
                 : 'bg-red-50 border border-red-200'
             }`}>
               <div className="flex items-center space-x-2">
                 <TestTube className={`w-5 h-5 ${
-                  submissionStatus === 'Accepted' ? 'text-green-600' : 'text-red-600'
+                  submissionStatus?.toUpperCase() === 'ACCEPTED' ? 'text-green-600' : 'text-red-600'
                 }`} />
                 <span className={`font-semibold ${
-                  submissionStatus === 'Accepted' ? 'text-green-800' : 'text-red-800'
+                  submissionStatus?.toUpperCase() === 'ACCEPTED' ? 'text-green-800' : 'text-red-800'
                 }`}>
                   {submissionStatus}
                 </span>
               </div>
               <p className={`mt-1 text-sm ${
-                submissionStatus === 'Accepted' ? 'text-green-700' : 'text-red-700'
+                submissionStatus?.toUpperCase() === 'ACCEPTED' ? 'text-green-700' : 'text-red-700'
               }`}>
-                {submissionStatus === 'Accepted' 
+                {submissionStatus?.toUpperCase() === 'ACCEPTED'
                   ? 'Congratulations! Your solution passed all test cases.'
-                  : 'Your solution failed some test cases. Please review and try again.'}
+                  : errorMessage || 'Your solution failed some test cases. Please review and try again.'}
               </p>
+            </div>
+          )}
+
+          {errorMessage && !submissionStatus && (
+            <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+              {errorMessage}
             </div>
           )}
         </div>

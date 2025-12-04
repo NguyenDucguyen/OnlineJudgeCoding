@@ -8,6 +8,7 @@ public class SubmissionRequest {
     private Integer language_id;
     private String source_code;
     private String stdin;
+    private String userId;
 
 
     public Long getProblemId() {
@@ -40,6 +41,14 @@ public class SubmissionRequest {
 
     public void setStdin(String stdin) {
         this.stdin = stdin;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }
 

@@ -6,6 +6,7 @@ import com.showtime.onlinejudgecode.auth.repository.UserRepository;
 import com.showtime.onlinejudgecode.judge.dto.request.Judge0Request;
 import com.showtime.onlinejudgecode.judge.dto.request.SubmissionRequest;
 import com.showtime.onlinejudgecode.judge.dto.response.Judge0Response;
+import com.showtime.onlinejudgecode.judge.dto.response.SubmissionHistoryResponse;
 import com.showtime.onlinejudgecode.judge.dto.response.SubmissionResponse;
 import com.showtime.onlinejudgecode.judge.entity.Problem;
 import com.showtime.onlinejudgecode.judge.entity.Submission;
@@ -21,6 +22,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -42,7 +44,9 @@ public class SubmissionService {
     public Mono<SubmissionResponse> submitCode(SubmissionRequest request, String userId) {
         Problem problem = problemRepository.findById(request.getProblemId())
                 .orElseThrow(() -> new RuntimeException("Problem not found"));
-        User user = userRepository.findById(userId);
+        User user = Optional.ofNullable(userId)
+                .flatMap(userRepository::findById)
+                .orElse(null);
 
         Submission submission = new Submission();
         submission.setUser(user);
@@ -51,7 +55,7 @@ public class SubmissionService {
         submission.setLanguageId(request.getLanguage_id());
         submission.setStatus("PENDING");
         submission.setSubmittedAt(LocalDateTime.now());
-        submission.setTotalTestCases(problem.getTestCases().size());
+        submission.setTotalTestCases(problem.getTestCases() != null ? problem.getTestCases().size() : 0);
         submission.setPassedTestCases(0);
 
         submission = submissionRepository.save(submission);
@@ -93,7 +97,8 @@ public class SubmissionService {
     private Flux<Judge0Response> runTestCases(List<TestCase> testCases,
                                               SubmissionRequest request,
                                               Problem problem) {
-        return Flux.fromIterable(testCases)
+        List<TestCase> cases = testCases != null ? testCases : List.of();
+        return Flux.fromIterable(cases)
                 .flatMap(testCase -> {
                     Judge0Request judge0Request = new Judge0Request();
                     judge0Request.setSource_code(request.getSource_code());
@@ -118,17 +123,54 @@ public class SubmissionService {
         response.setPassedTestCases(submission.getPassedTestCases());
         response.setTotalTestCases(submission.getTotalTestCases());
 
-        double score = (submission.getPassedTestCases() * 100.0) / submission.getTotalTestCases();
-        response.setScore(score);
+        if (submission.getTotalTestCases() != null && submission.getTotalTestCases() > 0) {
+            double score = (submission.getPassedTestCases() * 100.0) / submission.getTotalTestCases();
+            response.setScore(score);
+        } else {
+            response.setScore(0.0);
+        }
 
         return response;
     }
 
-    public List<Submission> getUserSubmissions(String userId) {
-        return submissionRepository.findByUserIdOrderBySubmittedAtDesc(userId);
+    public List<SubmissionHistoryResponse> getUserSubmissions(String userId) {
+        return submissionRepository.findByUser_IdOrderBySubmittedAtDesc(userId)
+                .stream()
+                .map(this::toHistoryResponse)
+                .toList();
     }
 
-    public List<Submission> getProblemSubmissions(Long problemId) {
-        return submissionRepository.findByProblemIdOrderBySubmittedAtDesc(problemId);
+    public List<SubmissionHistoryResponse> getProblemSubmissions(Long problemId) {
+        return submissionRepository.findByProblem_IdOrderBySubmittedAtDesc(problemId)
+                .stream()
+                .map(this::toHistoryResponse)
+                .toList();
+    }
+
+    public Optional<Submission> getSubmission(Long submissionId) {
+        return submissionRepository.findById(submissionId);
+    }
+
+    private SubmissionHistoryResponse toHistoryResponse(Submission submission) {
+        SubmissionHistoryResponse response = new SubmissionHistoryResponse();
+        response.setId(submission.getId());
+        if (submission.getProblem() != null) {
+            response.setProblemId(submission.getProblem().getId());
+            response.setProblemTitle(submission.getProblem().getTitle());
+        }
+        response.setStatus(submission.getStatus());
+        response.setRuntime(submission.getRuntime());
+        response.setMemory(submission.getMemory());
+        response.setLanguageId(submission.getLanguageId());
+        int passed = submission.getPassedTestCases() != null ? submission.getPassedTestCases() : 0;
+        int total = submission.getTotalTestCases() != null ? submission.getTotalTestCases() : 0;
+        response.setPassedTestCases(passed);
+        response.setTotalTestCases(total);
+        response.setSubmittedAt(submission.getSubmittedAt());
+        double score = total > 0 ? (passed * 100.0) / total : 0.0;
+        response.setScore(score);
+        response.setOutput(submission.getOutput());
+        response.setErrorMessage(submission.getErrorMessage());
+        return response;
     }
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Code2, Trophy, Award, BookOpen } from 'lucide-react';
+import { Code2, Trophy, Award, BookOpen, UserCircle2 } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: string;
@@ -10,7 +10,8 @@ const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange }) => {
   const tabs = [
     { id: 'prepare', label: 'Prepare', icon: BookOpen },
     { id: 'certify', label: 'Certify', icon: Award },
-    { id: 'compete', label: 'Compete', icon: Trophy }
+    { id: 'compete', label: 'Compete', icon: Trophy },
+    { id: 'profile', label: 'Profile', icon: UserCircle2 }
   ];
 
   return (

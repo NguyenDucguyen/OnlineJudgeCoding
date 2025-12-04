@@ -1,5 +1,6 @@
 package com.showtime.onlinejudgecode.judge.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -10,6 +11,7 @@ public class TestCase {
 
     @ManyToOne
     @JoinColumn(name = "problem_id")
+    @JsonBackReference
     private Problem problem;
 
     @Column(columnDefinition = "TEXT")

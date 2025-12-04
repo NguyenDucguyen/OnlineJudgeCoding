@@ -1,6 +1,7 @@
 package com.showtime.onlinejudgecode.judge.controller;
 
 import com.showtime.onlinejudgecode.judge.dto.request.SubmissionRequest;
+import com.showtime.onlinejudgecode.judge.dto.response.SubmissionHistoryResponse;
 import com.showtime.onlinejudgecode.judge.dto.response.SubmissionResponse;
 import com.showtime.onlinejudgecode.judge.entity.Submission;
 import com.showtime.onlinejudgecode.judge.service.SubmissionService;
@@ -30,8 +31,9 @@ public class SubmissionController {
      */
     @PostMapping
     public Mono<ResponseEntity<SubmissionResponse>> submit(@RequestBody SubmissionRequest request,
-                                                           Authentication authentication) {
-        String userId = String.valueOf(getUserIdFromAuth(authentication));
+                                                           Authentication authentication,
+                                                           @RequestParam(value = "userId", required = false) String userIdParam) {
+        String userId = resolveUserId(authentication, request.getUserId(), userIdParam);
 
         return submissionService.submitCode(request, userId)
                 .map(ResponseEntity::ok)
@@ -64,9 +66,10 @@ public class SubmissionController {
      * Get user's submission history
      */
     @GetMapping("/my-submissions")
-    public ResponseEntity<List<Submission>> getMySubmissions(Authentication authentication) {
-        String userId = String.valueOf(getUserIdFromAuth(authentication));
-        List<Submission> submissions = submissionService.getUserSubmissions(userId);
+    public ResponseEntity<List<SubmissionHistoryResponse>> getMySubmissions(Authentication authentication,
+                                                                            @RequestParam(value = "userId", required = false) String userIdParam) {
+        String userId = resolveUserId(authentication, null, userIdParam);
+        List<SubmissionHistoryResponse> submissions = submissionService.getUserSubmissions(userId);
         return ResponseEntity.ok(submissions);
     }
 
@@ -75,22 +78,30 @@ public class SubmissionController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<Submission> getSubmission(@PathVariable Long id) {
-        // Add authorization check here
-        return ResponseEntity.ok().build();
+        return submissionService.getSubmission(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
      * Get all submissions for a problem (for leaderboard)
      */
     @GetMapping("/problem/{problemId}")
-    public ResponseEntity<List<Submission>> getProblemSubmissions(@PathVariable Long problemId) {
-        List<Submission> submissions = submissionService.getProblemSubmissions(problemId);
+    public ResponseEntity<List<SubmissionHistoryResponse>> getProblemSubmissions(@PathVariable Long problemId) {
+        List<SubmissionHistoryResponse> submissions = submissionService.getProblemSubmissions(problemId);
         return ResponseEntity.ok(submissions);
     }
 
-    private Long getUserIdFromAuth(Authentication authentication) {
-        // Extract user ID from JWT token
-        // This depends on your authentication implementation
-        return 1L; // Replace with actual implementation
+    private String resolveUserId(Authentication authentication, String requestUserId, String requestParamUserId) {
+        if (requestUserId != null && !requestUserId.isBlank()) {
+            return requestUserId;
+        }
+        if (requestParamUserId != null && !requestParamUserId.isBlank()) {
+            return requestParamUserId;
+        }
+        if (authentication != null && authentication.getName() != null) {
+            return authentication.getName();
+        }
+        return null;
     }
 }
