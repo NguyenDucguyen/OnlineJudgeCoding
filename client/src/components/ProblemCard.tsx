@@ -45,7 +45,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({ problem, onClick }) => {
           {getDifficultyIcon(problem.difficulty)}
           <span>{problem.difficulty}</span>
         </span>
-        <span className="text-sm text-gray-500">{problem.category}</span>
+        <span className="text-sm text-gray-500">{problem.category ?? 'General'}</span>
       </div>
       
       <p className="text-sm text-gray-600 mb-4 line-clamp-2">
@@ -54,15 +54,15 @@ const ProblemCard: React.FC<ProblemCardProps> = ({ problem, onClick }) => {
       
       <div className="flex items-center justify-between">
         <div className="flex flex-wrap gap-1">
-          {problem.tags.slice(0, 3).map((tag) => (
+          {(problem.tags ?? []).slice(0, 3).map((tag) => (
             <span key={tag} className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full">
               {tag}
             </span>
           ))}
         </div>
-        {problem.attempts > 0 && (
+        {(problem.attempts ?? 0) > 0 && (
           <span className="text-xs text-gray-500">
-            {problem.attempts} attempt{problem.attempts > 1 ? 's' : ''}
+            {problem.attempts} attempt{(problem.attempts ?? 0) > 1 ? 's' : ''}
           </span>
         )}
       </div>

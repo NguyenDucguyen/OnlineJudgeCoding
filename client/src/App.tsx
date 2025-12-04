@@ -4,12 +4,13 @@ import PrepareSection from './components/PrepareSection';
 import CertifySection from './components/CertifySection';
 import CompeteSection from './components/CompeteSection';
 import ProblemDetail from './components/ProblemDetail';
-import { problems } from './data/problems';
 import { Problem } from './types';
+import { useProblems } from './hooks/useProblems';
 
 function App() {
   const [activeTab, setActiveTab] = useState('prepare');
   const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null);
+  const { problems, loading, error, refresh } = useProblems();
 
   const handleProblemSelect = (problem: Problem) => {
     setSelectedProblem(problem);
@@ -26,13 +27,13 @@ function App() {
 
     switch (activeTab) {
       case 'prepare':
-        return <PrepareSection problems={problems} onProblemSelect={handleProblemSelect} />;
+        return <PrepareSection problems={problems} onProblemSelect={handleProblemSelect} loading={loading} error={error} onRetry={refresh} />;
       case 'certify':
         return <CertifySection />;
       case 'compete':
         return <CompeteSection />;
       default:
-        return <PrepareSection problems={problems} onProblemSelect={handleProblemSelect} />;
+        return <PrepareSection problems={problems} onProblemSelect={handleProblemSelect} loading={loading} error={error} onRetry={refresh} />;
     }
   };
 

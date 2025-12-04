@@ -1,5 +1,6 @@
 package com.showtime.onlinejudgecode.judge.config;
 
+import com.showtime.onlinejudgecode.judge.entity.Example;
 import com.showtime.onlinejudgecode.judge.entity.Problem;
 import com.showtime.onlinejudgecode.judge.entity.TestCase;
 import com.showtime.onlinejudgecode.judge.repository.ProblemRepository;
@@ -44,6 +45,20 @@ public class DataSeeder implements CommandLineRunner {
         twoSum.setDifficulty("EASY");
         twoSum.setTimeLimit(2000); // 2 seconds
         twoSum.setMemoryLimit(256000); // 256 MB
+        twoSum.setCategory("Arrays");
+        twoSum.setConstraints(List.of(
+                "2 <= nums.length <= 10^4",
+                "-10^9 <= nums[i] <= 10^9",
+                "-10^9 <= target <= 10^9",
+                "Only one valid answer exists."
+        ));
+        twoSum.setTags(List.of("Array", "Hash Table"));
+        twoSum.setSolved(false);
+        twoSum.setAttempts(0);
+        twoSum.setExamples(List.of(
+                buildExample("nums = [2,7,11,15], target = 9", "[0,1]", "Because nums[0] + nums[1] == 9"),
+                buildExample("nums = [3,2,4], target = 6", "[1,2]", null)
+        ));
 
         List<TestCase> twoSumTests = new ArrayList<>();
 
@@ -85,6 +100,15 @@ public class DataSeeder implements CommandLineRunner {
         palindrome.setDifficulty("EASY");
         palindrome.setTimeLimit(1000);
         palindrome.setMemoryLimit(128000);
+        palindrome.setCategory("Math");
+        palindrome.setConstraints(List.of("-2^31 <= x <= 2^31 - 1"));
+        palindrome.setTags(List.of("Math"));
+        palindrome.setSolved(true);
+        palindrome.setAttempts(1);
+        palindrome.setExamples(List.of(
+                buildExample("121", "true", null),
+                buildExample("-121", "false", "Negative numbers are not palindromes")
+        ));
 
         List<TestCase> palindromeTests = new ArrayList<>();
 
@@ -129,6 +153,15 @@ public class DataSeeder implements CommandLineRunner {
         fizzBuzz.setDifficulty("EASY");
         fizzBuzz.setTimeLimit(1000);
         fizzBuzz.setMemoryLimit(128000);
+        fizzBuzz.setCategory("Simulation");
+        fizzBuzz.setConstraints(List.of("1 <= n <= 10^4"));
+        fizzBuzz.setTags(List.of("Math", "String"));
+        fizzBuzz.setSolved(false);
+        fizzBuzz.setAttempts(2);
+        fizzBuzz.setExamples(List.of(
+                buildExample("3", "[1, 2, Fizz]", null),
+                buildExample("5", "[1, 2, Fizz, 4, Buzz]", null)
+        ));
 
         List<TestCase> fizzBuzzTests = new ArrayList<>();
 
@@ -157,5 +190,13 @@ public class DataSeeder implements CommandLineRunner {
         problemRepository.save(fizzBuzz);
 
         System.out.println("✅ Seeded 3 sample problems with test cases");
+    }
+
+    private Example buildExample(String input, String output, String explanation) {
+        Example example = new Example();
+        example.setInput(input);
+        example.setOutput(output);
+        example.setExplanation(explanation);
+        return example;
     }
 }

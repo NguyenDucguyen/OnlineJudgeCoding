@@ -1,9 +1,7 @@
 package com.showtime.onlinejudgecode.judge.controller;
 
-
-import com.showtime.onlinejudgecode.judge.entity.Problem;
-import com.showtime.onlinejudgecode.judge.repository.ProblemRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.showtime.onlinejudgecode.judge.dto.response.ProblemResponse;
+import com.showtime.onlinejudgecode.judge.service.IProblemService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,19 +11,18 @@ import java.util.List;
 @RequestMapping("/api/problems")
 public class ProblemController {
 
-    @Autowired
-    private final ProblemRepository problemRepository;
+    private final IProblemService problemService;
 
-    public ProblemController(ProblemRepository problemRepository) {
-        this.problemRepository = problemRepository;
+    public ProblemController(IProblemService problemService) {
+        this.problemService = problemService;
     }
 
     /**
      * Get all problems
      */
     @GetMapping
-    public ResponseEntity<List<Problem>> getAllProblems() {
-        List<Problem> problems = problemRepository.findAll();
+    public ResponseEntity<List<ProblemResponse>> getAllProblems() {
+        List<ProblemResponse> problems = problemService.getAllProblems();
         return ResponseEntity.ok(problems);
     }
 
@@ -33,18 +30,9 @@ public class ProblemController {
      * Get problem by ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Problem> getProblem(@PathVariable Long id) {
-        return problemRepository.findById(id)
+    public ResponseEntity<ProblemResponse> getProblem(@PathVariable Long id) {
+        return problemService.getProblemById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    /**
-     * Create new problem (Admin only)
-     */
-    @PostMapping
-    public ResponseEntity<Problem> createProblem(@RequestBody Problem problem) {
-        Problem saved = problemRepository.save(problem);
-        return ResponseEntity.ok(saved);
     }
 }

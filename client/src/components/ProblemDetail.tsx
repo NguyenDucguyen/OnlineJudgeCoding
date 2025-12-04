@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ArrowLeft, BookOpen, TestTube, Code2 } from 'lucide-react';
 import { Problem } from '../types';
 import CodeEditor from './CodeEditor';
 import TestResults from './TestResults';
+import { useProblemTests } from '../hooks/useProblemTests';
 
 interface ProblemDetailProps {
   problem: Problem;
@@ -14,12 +15,18 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
   const [testResults, setTestResults] = useState<any[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
+  const { tests, loading: testsLoading, error: testsError } = useProblemTests(problem.id);
+
+  const visibleTests = useMemo(() => {
+    if (tests.length) return tests;
+    return problem.testCases ?? [];
+  }, [tests, problem.testCases]);
 
   const handleRunCode = async (code: string) => {
     setIsRunning(true);
     // Simulate code execution
     setTimeout(() => {
-      const results = problem.testCases.filter(tc => !tc.hidden).map((testCase, index) => ({
+      const results = visibleTests.filter(tc => !tc.hidden).map((testCase, index) => ({
         testCase: index + 1,
         input: testCase.input,
         expected: testCase.expectedOutput,
@@ -102,9 +109,9 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
                     </span>
                   </div>
                   <div className="flex items-center space-x-4 text-sm text-gray-600 mb-6">
-                    <span>{problem.category}</span>
+                    <span>{problem.category ?? 'General'}</span>
                     <span>•</span>
-                    <span>{problem.attempts} attempts</span>
+                    <span>{problem.attempts ?? 0} attempts</span>
                   </div>
                 </div>
 
@@ -115,7 +122,7 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Examples</h3>
                   <div className="space-y-4">
-                    {problem.examples.map((example, index) => (
+                    {(problem.examples ?? []).map((example, index) => (
                       <div key={index} className="bg-gray-50 rounded-lg p-4">
                         <div className="mb-2">
                           <span className="text-sm font-medium text-gray-700">Input:</span>
@@ -139,7 +146,7 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Constraints</h3>
                   <ul className="space-y-1">
-                    {problem.constraints.map((constraint, index) => (
+                    {(problem.constraints ?? []).map((constraint, index) => (
                       <li key={index} className="text-sm text-gray-700">• {constraint}</li>
                     ))}
                   </ul>
@@ -148,7 +155,7 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags</h3>
                   <div className="flex flex-wrap gap-2">
-                    {problem.tags.map((tag) => (
+                    {(problem.tags ?? []).map((tag) => (
                       <span key={tag} className="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full">
                         {tag}
                       </span>
@@ -175,6 +182,18 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack }) => {
           />
 
           {/* Test Results */}
+          {testsLoading && (
+            <div className="bg-white p-4 rounded-lg border border-gray-200 text-sm text-gray-600">
+              Loading test cases...
+            </div>
+          )}
+
+          {testsError && (
+            <div className="bg-red-50 border border-red-200 text-sm text-red-700 p-4 rounded-lg">
+              Failed to load test cases. Please try again later.
+            </div>
+          )}
+
           {testResults.length > 0 && (
             <TestResults results={testResults} />
           )}

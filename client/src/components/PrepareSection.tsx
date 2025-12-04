@@ -6,21 +6,24 @@ import ProblemCard from './ProblemCard';
 interface PrepareSectionProps {
   problems: Problem[];
   onProblemSelect: (problem: Problem) => void;
+  loading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
 }
 
-const PrepareSection: React.FC<PrepareSectionProps> = ({ problems, onProblemSelect }) => {
+const PrepareSection: React.FC<PrepareSectionProps> = ({ problems, onProblemSelect, loading, error, onRetry }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortBy, setSortBy] = useState('title');
 
-  const categories = Array.from(new Set(problems.map(p => p.category)));
+  const categories = Array.from(new Set(problems.map(p => p.category ?? 'General')));
   
   const filteredProblems = problems.filter(problem => {
     const matchesSearch = problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          problem.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesDifficulty = !selectedDifficulty || problem.difficulty === selectedDifficulty;
-    const matchesCategory = !selectedCategory || problem.category === selectedCategory;
+    const matchesCategory = !selectedCategory || (problem.category ?? 'General') === selectedCategory;
     
     return matchesSearch && matchesDifficulty && matchesCategory;
   }).sort((a, b) => {
@@ -44,6 +47,32 @@ const PrepareSection: React.FC<PrepareSectionProps> = ({ problems, onProblemSele
     medium: problems.filter(p => p.difficulty === 'Medium').length,
     hard: problems.filter(p => p.difficulty === 'Hard').length
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-gray-600">Loading problems...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="bg-red-50 border border-red-200 p-6 rounded-lg text-center">
+          <p className="text-red-700 mb-4">{error}</p>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

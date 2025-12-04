@@ -1,15 +1,17 @@
 export interface Problem {
-  id: string;
+  id: number;
   title: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
-  category: string;
+  category?: string;
   description: string;
-  examples: Example[];
-  testCases: TestCase[];
-  constraints: string[];
-  tags: string[];
-  solved: boolean;
-  attempts: number;
+  examples?: Example[];
+  testCases?: TestCase[];
+  constraints?: string[];
+  tags?: string[];
+  solved?: boolean;
+  attempts?: number;
+  timeLimit?: number;
+  memoryLimit?: number;
 }
 
 export interface Example {
@@ -19,6 +21,7 @@ export interface Example {
 }
 
 export interface TestCase {
+  id?: number;
   input: string;
   expectedOutput: string;
   hidden: boolean;
