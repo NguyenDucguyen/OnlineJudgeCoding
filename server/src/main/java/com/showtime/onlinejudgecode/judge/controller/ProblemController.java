@@ -2,6 +2,7 @@ package com.showtime.onlinejudgecode.judge.controller;
 
 
 import com.showtime.onlinejudgecode.judge.dto.request.ProblemRequest;
+import com.showtime.onlinejudgecode.judge.dto.response.ProblemResponse;
 import com.showtime.onlinejudgecode.judge.entity.Problem;
 import com.showtime.onlinejudgecode.judge.service.impl.ProblemService;
 import org.springframework.http.HttpStatus;
@@ -21,12 +22,12 @@ public class ProblemController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Problem>> getAllProblems() {
+    public ResponseEntity<List<ProblemResponse>> getAllProblems() {
         return ResponseEntity.ok(problemService.getAllProblems());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Problem> getProblem(@PathVariable Long id) {
+    public ResponseEntity<ProblemResponse> getProblem(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(problemService.getProblemById(id));
         } catch (IllegalArgumentException ex) {

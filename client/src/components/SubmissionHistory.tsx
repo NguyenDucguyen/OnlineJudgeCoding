@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Clock, CheckCircle, XCircle, Zap } from 'lucide-react';
+import { CheckCircle, XCircle, Zap } from 'lucide-react';
 import { fetchMySubmissions } from '../services/api';
 import { SubmissionHistory as SubmissionHistoryType } from '../types';
 import { useAuth } from '../context/AuthContext';

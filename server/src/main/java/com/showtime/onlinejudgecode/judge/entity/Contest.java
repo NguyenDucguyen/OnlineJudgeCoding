@@ -6,6 +6,9 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -28,6 +31,14 @@ public class Contest {
 
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> prizes = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "contest_problems",
+            joinColumns = @JoinColumn(name = "contest_id"),
+            inverseJoinColumns = @JoinColumn(name = "problem_id")
+    )
+    private List<Problem> problems = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -107,5 +118,13 @@ public class Contest {
 
     public void setPrizes(List<String> prizes) {
         this.prizes = prizes;
+    }
+
+    public List<Problem> getProblems() {
+        return problems;
+    }
+
+    public void setProblems(List<Problem> problems) {
+        this.problems = problems;
     }
 }

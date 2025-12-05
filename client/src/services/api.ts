@@ -123,6 +123,16 @@ export async function fetchContests(token?: string): Promise<Contest[]> {
   return handleResponse<Contest[]>(res);
 }
 
+export async function fetchContest(contestId: number, token?: string): Promise<Contest> {
+  const res = await fetch(`${API_URL}/api/contests/${contestId}`, { headers: withAuthHeaders(token) });
+  return handleResponse<Contest>(res);
+}
+
+export async function fetchContestProblems(contestId: number, token?: string): Promise<Problem[]> {
+  const res = await fetch(`${API_URL}/api/contests/${contestId}/problems`, { headers: withAuthHeaders(token) });
+  return handleResponse<Problem[]>(res);
+}
+
 export async function registerForContest(contestId: number, userId: string, token?: string): Promise<ContestRegistration> {
   const res = await fetch(`${API_URL}/api/contests/${contestId}/register`, {
     method: 'POST',

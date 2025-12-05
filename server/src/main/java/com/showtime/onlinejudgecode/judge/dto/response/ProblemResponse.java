@@ -1,35 +1,16 @@
-package com.showtime.onlinejudgecode.judge.entity;
+package com.showtime.onlinejudgecode.judge.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-public class Problem {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class ProblemResponse {
     private Long id;
-
     private String title;
-
-    @Column(columnDefinition = "TEXT")
     private String description;
-
-    private String difficulty; // EASY, MEDIUM, HARD
-
-    @OneToMany(
-            mappedBy = "problem",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.LAZY
-    )
-    @JsonIgnore
-    private List<TestCase> testCases = new ArrayList<>();
-
-    private Integer timeLimit; // milliseconds
-    private Integer memoryLimit; // KB
+    private String difficulty;
+    private Integer timeLimit;
+    private Integer memoryLimit;
+    private List<TestCaseResponse> testCases = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -63,14 +44,6 @@ public class Problem {
         this.difficulty = difficulty;
     }
 
-    public List<TestCase> getTestCases() {
-        return testCases;
-    }
-
-    public void setTestCases(List<TestCase> testCases) {
-        this.testCases = testCases;
-    }
-
     public Integer getTimeLimit() {
         return timeLimit;
     }
@@ -85,5 +58,13 @@ public class Problem {
 
     public void setMemoryLimit(Integer memoryLimit) {
         this.memoryLimit = memoryLimit;
+    }
+
+    public List<TestCaseResponse> getTestCases() {
+        return testCases;
+    }
+
+    public void setTestCases(List<TestCaseResponse> testCases) {
+        this.testCases = testCases;
     }
 }

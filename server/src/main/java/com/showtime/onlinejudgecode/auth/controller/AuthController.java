@@ -1,9 +1,7 @@
 package com.showtime.onlinejudgecode.auth.controller;
 
-import com.showtime.onlinejudgecode.auth.dto.ApiResponse;
-import com.showtime.onlinejudgecode.auth.dto.AuthResponse;
-import com.showtime.onlinejudgecode.auth.dto.LoginRequest;
-import com.showtime.onlinejudgecode.auth.dto.RegisterRequest;
+
+import com.showtime.onlinejudgecode.auth.dto.*;
 import com.showtime.onlinejudgecode.auth.entity.Role;
 import com.showtime.onlinejudgecode.auth.entity.User;
 import com.showtime.onlinejudgecode.auth.repository.UserRepository;
@@ -22,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
+
 import java.util.List;
 
 @RestController
@@ -151,4 +149,32 @@ public class AuthController {
                     .body(ApiResponse.fail("Sai tài khoản hoặc mật khẩu"));
         }
     }
+
+    @PostMapping("/token/generate")
+    public ResponseEntity<ApiResponse> generateTokenManual(@RequestBody TokenGenRequest request) {
+        try {
+            // Validate cơ bản
+            if (request.getEmail() == null || request.getRole() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.fail("Vui lòng nhập email và chọn role (USER/ADMIN)"));
+            }
+
+            // 1. Lấy role từ Enum và thêm tiền tố ROLE_
+            String roleName = "ROLE_" + request.getRole().name();
+
+            // 2. Tạo token
+            String token = jwtService.createToken(
+                    request.getEmail(),
+                    List.of(roleName)
+            );
+
+            // 3. Trả về
+            return ResponseEntity.ok(ApiResponse.success("Sinh token thành công", new AuthResponse(token, null)));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.fail("Lỗi: " + e.getMessage()));
+        }
+    }
 }
+

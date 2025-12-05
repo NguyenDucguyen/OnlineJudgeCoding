@@ -37,6 +37,7 @@ export interface Contest {
   difficulty?: string;
   status?: string;
   prizes?: string[];
+  problems?: Problem[];
 }
 
 export interface ContestRegistration {

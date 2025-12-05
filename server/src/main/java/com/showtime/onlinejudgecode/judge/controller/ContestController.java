@@ -4,12 +4,14 @@ import com.showtime.onlinejudgecode.judge.dto.request.ContestRegistrationRequest
 import com.showtime.onlinejudgecode.judge.dto.request.ContestRequest;
 import com.showtime.onlinejudgecode.judge.entity.Contest;
 import com.showtime.onlinejudgecode.judge.entity.ContestRegistration;
+import com.showtime.onlinejudgecode.judge.entity.Problem;
 import com.showtime.onlinejudgecode.judge.service.impl.ContestService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/contests")
@@ -58,13 +60,17 @@ public class ContestController {
     }
 
     @PostMapping("/{id}/register")
-    public ResponseEntity<ContestRegistration> registerForContest(@PathVariable Long id,
-                                                                  @RequestBody ContestRegistrationRequest request) {
+
+    public ResponseEntity<?> registerForContest(@PathVariable Long id,
+                                                @RequestBody ContestRegistrationRequest request) {
         try {
             ContestRegistration registration = contestService.registerForContest(id, request);
             return ResponseEntity.status(HttpStatus.CREATED).body(registration);
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(Map.of(
+                    "message", ex.getMessage(),
+                    "status", 400
+            ));
         }
     }
 
@@ -72,6 +78,15 @@ public class ContestController {
     public ResponseEntity<List<ContestRegistration>> getRegistrations(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(contestService.getRegistrations(id));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/{id}/problems")
+    public ResponseEntity<List<Problem>> getContestProblems(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(contestService.getContestProblems(id));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.notFound().build();
         }
