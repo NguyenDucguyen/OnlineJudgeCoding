@@ -11,6 +11,11 @@ export const problems: Problem[] = [
 You may assume that each input would have exactly one solution, and you may not use the same element twice.
 
 You can return the answer in any order.`,
+    inputFormat: `A single line containing an array of integers nums followed by the target value on the next line.
+Example:
+2 7 11 15
+9`,
+    outputFormat: 'Return the zero-based indices of the two numbers as [i,j].',
     examples: [
       {
         input: 'nums = [2,7,11,15], target = 9',
@@ -36,6 +41,11 @@ You can return the answer in any order.`,
       {
         input: '[3,3]\n6',
         expectedOutput: '[0,1]',
+        hidden: false
+      },
+      {
+        input: '[3,3]\n6',
+        expectedOutput: '[0,1]',
         hidden: true
       }
     ],
@@ -47,7 +57,9 @@ You can return the answer in any order.`,
     ],
     tags: ['Array', 'Hash Table'],
     solved: false,
-    attempts: 0
+    attempts: 0,
+    timeLimit: 1,
+    memoryLimit: 256
   },
   {
     id: 2,
@@ -57,6 +69,8 @@ You can return the answer in any order.`,
     description: `Write a function that reverses a string. The input string is given as an array of characters s.
 
 You must do this by modifying the input array in-place with O(1) extra memory.`,
+    inputFormat: 'An array of characters s provided on a single line.',
+    outputFormat: 'The same array reversed, printed as characters in order.',
     examples: [
       {
         input: 's = ["h","e","l","l","o"]',
@@ -77,6 +91,11 @@ You must do this by modifying the input array in-place with O(1) extra memory.`,
         input: '["H","a","n","n","a","h"]',
         expectedOutput: '["h","a","n","n","a","H"]',
         hidden: false
+      },
+      {
+        input: '["a"]',
+        expectedOutput: '["a"]',
+        hidden: false
       }
     ],
     constraints: [
@@ -85,7 +104,9 @@ You must do this by modifying the input array in-place with O(1) extra memory.`,
     ],
     tags: ['Two Pointers', 'String'],
     solved: true,
-    attempts: 2
+    attempts: 2,
+    timeLimit: 1,
+    memoryLimit: 256
   },
   {
     id: 3,
@@ -95,6 +116,8 @@ You must do this by modifying the input array in-place with O(1) extra memory.`,
     description: `Given the root of a binary tree, return the inorder traversal of its nodes' values.
 
 Follow up: Recursive solution is trivial, could you do it iteratively?`,
+    inputFormat: 'A level-order representation of the binary tree nodes, using null for empty children.',
+    outputFormat: 'A list of node values in inorder traversal.',
     examples: [
       {
         input: 'root = [1,null,2,3]',
@@ -115,6 +138,11 @@ Follow up: Recursive solution is trivial, could you do it iteratively?`,
         input: '[]',
         expectedOutput: '[]',
         hidden: false
+      },
+      {
+        input: '[1]',
+        expectedOutput: '[1]',
+        hidden: false
       }
     ],
     constraints: [
@@ -123,7 +151,9 @@ Follow up: Recursive solution is trivial, could you do it iteratively?`,
     ],
     tags: ['Stack', 'Tree', 'Depth-First Search'],
     solved: false,
-    attempts: 5
+    attempts: 5,
+    timeLimit: 2,
+    memoryLimit: 512
   },
   {
     id: 4,
@@ -133,6 +163,8 @@ Follow up: Recursive solution is trivial, could you do it iteratively?`,
     description: `You are given an array of k linked-lists lists, each linked-list is sorted in ascending order.
 
 Merge all the linked-lists into one sorted linked-list and return it.`,
+    inputFormat: 'An array of k sorted linked lists represented as nested arrays.',
+    outputFormat: 'A single sorted list containing all nodes from the input lists.',
     examples: [
       {
         input: 'lists = [[1,4,5],[1,3,4],[2,6]]',
@@ -149,6 +181,11 @@ Merge all the linked-lists into one sorted linked-list and return it.`,
       {
         input: '[]',
         expectedOutput: '[]',
+        hidden: false
+      },
+      {
+        input: '[[1],[0]]',
+        expectedOutput: '[0,1]',
         hidden: true
       }
     ],
@@ -160,6 +197,8 @@ Merge all the linked-lists into one sorted linked-list and return it.`,
     ],
     tags: ['Linked List', 'Divide and Conquer', 'Heap', 'Merge Sort'],
     solved: false,
-    attempts: 0
+    attempts: 0,
+    timeLimit: 3,
+    memoryLimit: 1024
   }
 ];
