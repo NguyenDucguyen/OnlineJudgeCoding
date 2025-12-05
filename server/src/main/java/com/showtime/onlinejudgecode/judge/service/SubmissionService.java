@@ -20,8 +20,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,56 +56,68 @@ public class SubmissionService {
             @CacheEvict(value = "problem_submissions", key = "#a0.problemId")
     })
     public Mono<SubmissionResponse> submitCode(SubmissionRequest request, String userId) {
-        Problem problem = problemRepository.findById(request.getProblemId())
-                .orElseThrow(() -> new RuntimeException("Problem not found"));
+        return Mono.fromCallable(() -> {
+                    // --- SỬA DÒNG NÀY ---
+                    // Thay problemRepository.findById(...) bằng findByIdWithTestCases(...)
+                    Problem problem = problemRepository.findByIdWithTestCases(request.getProblemId())
+                            .orElseThrow(() -> new RuntimeException("Problem not found"));
+                    // --------------------
 
-        // ... (Logic tạo Submission ban đầu giữ nguyên)
-        User user = Optional.ofNullable(userId)
-                .flatMap(userRepository::findById)
-                .orElse(null);
+                    User user = null;
+                    if (userId != null) {
+                        user = userRepository.findById(userId).orElse(null);
+                    }
 
-        Submission submission = new Submission();
-        submission.setUser(user);
-        submission.setProblem(problem);
-        submission.setSourceCode(request.getSource_code());
-        submission.setLanguageId(request.getLanguage_id());
-        submission.setStatus("PENDING");
-        submission.setSubmittedAt(LocalDateTime.now());
-        submission.setTotalTestCases(problem.getTestCases() != null ? problem.getTestCases().size() : 0);
-        submission.setPassedTestCases(0);
+                    Submission submission = new Submission();
+                    submission.setUser(user);
+                    submission.setProblem(problem);
+                    submission.setSourceCode(request.getSource_code());
+                    submission.setLanguageId(request.getLanguage_id());
+                    submission.setStatus("PENDING");
+                    submission.setSubmittedAt(LocalDateTime.now());
 
-        Submission savedSubmission = submissionRepository.save(submission); // Đổi tên biến tránh final effective issue
+                    // Lúc này getTestCases() đã có dữ liệu, không bị lỗi no Session nữa
+                    submission.setTotalTestCases(problem.getTestCases() != null ? problem.getTestCases().size() : 0);
+                    submission.setPassedTestCases(0);
 
-        return runTestCases(problem.getTestCases(), request, problem)
-                .collectList()
-                .map(results -> {
-                    // ... (Logic tính toán kết quả giữ nguyên)
-                    long passed = results.stream().filter(r -> r.getStatus().getId() == 3).count();
-                    savedSubmission.setPassedTestCases((int) passed);
-                    savedSubmission.setStatus(passed == results.size() ? "ACCEPTED" : "WRONG_ANSWER");
-
-                    results.stream()
-                            .filter(r -> r.getStatus().getId() != 3)
-                            .findFirst()
-                            .ifPresent(failed -> {
-                                savedSubmission.setOutput(failed.getStdout());
-                                savedSubmission.setErrorMessage(
-                                        failed.getStderr() != null ? failed.getStderr() : failed.getCompile_output()
-                                );
-                            });
-
-                    double avgTime = results.stream().mapToDouble(Judge0Response::getTime).average().orElse(0.0);
-                    savedSubmission.setRuntime((int) (avgTime * 1000));
-                    submissionRepository.save(savedSubmission);
-
-                    return buildResponse(savedSubmission);
+                    return submissionRepository.save(submission);
                 })
-                .onErrorMap(ex -> {
-                    savedSubmission.setStatus("JUDGE0_ERROR");
-                    savedSubmission.setErrorMessage(ex.getMessage());
-                    submissionRepository.save(savedSubmission);
-                    return ex;
-                });
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMap(savedSubmission -> {
+                    // Lấy problem từ submission đã lưu
+                    Problem problem = savedSubmission.getProblem();
+
+                    // Quan trọng: Vì testCases đã fetch ở bước 1, nên ở đây dùng bình thường
+                    return runTestCases(problem.getTestCases(), request, problem)
+                            .collectList()
+                            .flatMap(results -> {
+                                // ... (Code xử lý kết quả giữ nguyên như cũ) ...
+                                return Mono.fromCallable(() -> {
+                                    // ... logic update submission ...
+                                    long passed = results.stream().filter(r -> r.getStatus().getId() == 3).count();
+                                    savedSubmission.setPassedTestCases((int) passed);
+                                    savedSubmission.setStatus(passed == results.size() ? "ACCEPTED" : "WRONG_ANSWER");
+
+                                    // Logic decodeBase64 bạn vừa thêm
+                                    results.stream()
+                                            .filter(r -> r.getStatus().getId() != 3)
+                                            .findFirst()
+                                            .ifPresent(failed -> {
+                                                String decodedStdout = decodeBase64(failed.getStdout());
+                                                String decodedError = decodeBase64(failed.getStderr() != null ? failed.getStderr() : failed.getCompile_output());
+                                                savedSubmission.setOutput(decodedStdout);
+                                                savedSubmission.setErrorMessage(decodedError);
+                                            });
+
+                                    double avgTime = results.stream().mapToDouble(Judge0Response::getTime).average().orElse(0.0);
+                                    savedSubmission.setRuntime((int) (avgTime * 1000));
+
+                                    submissionRepository.save(savedSubmission);
+                                    return buildResponse(savedSubmission);
+                                }).subscribeOn(Schedulers.boundedElastic());
+                            });
+                })
+                .onErrorResume(ex -> Mono.error(ex));
     }
 
     // ... (runTestCases và buildResponse giữ nguyên)
@@ -178,6 +193,17 @@ public class SubmissionService {
         return submissionRepository.findById(submissionId);
     }
 
+    // --- THÊM HÀM TIỆN ÍCH NÀY ---
+    private String decodeBase64(String encodedString) {
+        if (encodedString == null) return null;
+        try {
+            // Kiểm tra xem chuỗi có phải Base64 hợp lệ không, nếu không trả về nguyên gốc
+            byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
+            return new String(decodedBytes, StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            return encodedString; // Trả về text gốc nếu Judge0 không gửi về base64
+        }
+    }
     // ... (toHistoryResponse giữ nguyên)
     private SubmissionHistoryResponse toHistoryResponse(Submission submission) {
         // ... (Giữ nguyên logic cũ)

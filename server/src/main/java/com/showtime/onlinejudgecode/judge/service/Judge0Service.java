@@ -1,16 +1,13 @@
 package com.showtime.onlinejudgecode.judge.service;
 
-
 import com.showtime.onlinejudgecode.judge.dto.request.Judge0Request;
 import com.showtime.onlinejudgecode.judge.dto.response.Judge0Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
@@ -19,13 +16,25 @@ import java.time.Duration;
 public class Judge0Service {
 
     private final WebClient webClient;
-
     private static final Logger log = LoggerFactory.getLogger(Judge0Service.class);
-    @Value("${judge0.api.url}")
-    private String judge0Url;
 
-    public Judge0Service(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.build();
+    // BƯỚC 1: Khai báo biến (Uncomment và thêm final)
+    // Để có thể dùng biến này ở bất kỳ hàm nào bên dưới
+    private final String judge0Url;
+
+    // SỬA CONSTRUCTOR:
+    public Judge0Service(WebClient.Builder webClientBuilder,
+                         @Value("${judge0.api.url:http://localhost:2358}") String judge0Url) {
+
+        log.info("Connecting to Judge0 at: {}", judge0Url);
+
+        // BƯỚC 2: Gán giá trị tham số vào biến của Class
+        this.judge0Url = judge0Url;
+
+        this.webClient = webClientBuilder
+                .baseUrl(judge0Url) // Đã set Base URL ở đây rồi
+                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024))
+                .build();
     }
 
     /**
@@ -33,14 +42,17 @@ public class Judge0Service {
      */
     public Mono<String> submitCode(Judge0Request request) {
         return webClient.post()
-                .uri(judge0Url + "/submissions?base64_encoded=false&wait=false")
+                // BƯỚC 3: SỬA QUAN TRỌNG
+                // Bỏ "judge0Url" ở đầu đi, chỉ để đường dẫn tương đối.
+                // Vì WebClient đã có Base URL rồi. Nếu để cả 2 sẽ bị lặp URL.
+                .uri("/submissions?base64_encoded=false&wait=false")
                 .bodyValue(request)
                 .retrieve()
                 .onStatus(
                         status -> status.value() >= 400,
                         response -> response.bodyToMono(String.class)
                                 .flatMap(body -> {
-                                    log.error("Judge0 API Error: {}", body);
+                                    log.error("Judge0 API Error at {}: {}", this.judge0Url, body); // Ví dụ dùng lại biến judge0Url ở đây
                                     return Mono.error(new RuntimeException("Judge0 error: " + body));
                                 })
                 )
@@ -56,34 +68,38 @@ public class Judge0Service {
      */
     public Mono<Judge0Response> getSubmissionResult(String token) {
         return webClient.get()
-                .uri(judge0Url + "/submissions/" + token + "?base64_encoded=false")
+                .uri(uriBuilder -> uriBuilder
+                        .path("/submissions/{token}") // Chỉ cần path tương đối
+                        .queryParam("base64_encoded", "true")
+                        .queryParam("fields", "*")
+                        .build(token))
                 .retrieve()
                 .bodyToMono(Judge0Response.class)
-                .doOnSuccess(response -> log.info("Got result for token {}: {}",
-                        token, response.getStatus().getDescription()))
-                .doOnError(e -> log.error("Error getting submission result", e));
+                .onErrorResume(e -> {
+                    // Dùng biến class this.judge0Url để log cho rõ ràng
+                    System.err.println("Lỗi khi gọi Judge0 GET tại " + this.judge0Url + ": " + e.getMessage());
+                    return Mono.error(e);
+                });
     }
 
     /**
      * Wait for submission to complete (polling)
      */
     public Mono<Judge0Response> waitForResult(String token, int maxAttempts) {
-        Duration interval = Duration.ofMillis(800);   // poll ~0.8s
-        int attempts = Math.max(maxAttempts, 40);     // tối thiểu 40 lần (~32s)
+        Duration interval = Duration.ofMillis(800);
+        int attempts = Math.max(maxAttempts, 40);
 
-        return Mono.delay(Duration.ofMillis(500))     // đợi nửa giây cho job vào queue
+        return Mono.delay(Duration.ofMillis(500))
                 .then(getSubmissionResult(token))
                 .flatMap(resp -> {
                     Integer st = resp.getStatus() != null ? resp.getStatus().getId() : null;
-                    if (st != null && st > 2) return Mono.just(resp);           // hoàn thành
+                    if (st != null && st > 2) return Mono.just(resp);
                     return Mono.error(new RuntimeException("Still processing"));
                 })
                 .retryWhen(
                         Retry.fixedDelay(attempts, interval)
                                 .filter(ex -> "Still processing".equals(ex.getMessage()))
                 )
-                .timeout(Duration.ofSeconds(90));         // trần tối đa
+                .timeout(Duration.ofSeconds(90));
     }
-
-
 }
