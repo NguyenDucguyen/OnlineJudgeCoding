@@ -27,6 +27,8 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack, currentU
     cpp: { id: 54, label: 'C++' },
   }), []);
 
+  const sampleTestCases = useMemo(() => (problem.testCases || []).filter(test => !test.hidden), [problem.testCases]);
+
   const buildTestResults = (response: SubmissionResponse) => {
     const visibleCases = problem.testCases || [];
     const passedCount = response.passedTestCases ?? 0;
@@ -148,6 +150,40 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack, currentU
                   <p className="text-gray-700 whitespace-pre-line">{problem.description}</p>
                 </div>
 
+                {(problem.timeLimit || problem.memoryLimit) && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {problem.timeLimit && (
+                      <div className="p-4 rounded-lg border border-gray-200 bg-gray-50">
+                        <p className="text-sm text-gray-500">Time Limit</p>
+                        <p className="text-lg font-semibold text-gray-900">{problem.timeLimit}s</p>
+                      </div>
+                    )}
+                    {problem.memoryLimit && (
+                      <div className="p-4 rounded-lg border border-gray-200 bg-gray-50">
+                        <p className="text-sm text-gray-500">Memory Limit</p>
+                        <p className="text-lg font-semibold text-gray-900">{problem.memoryLimit} MB</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {(problem.inputFormat || problem.outputFormat) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {problem.inputFormat && (
+                      <div className="p-4 rounded-lg border border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Input Format</h3>
+                        <p className="text-sm text-gray-700 whitespace-pre-line">{problem.inputFormat}</p>
+                      </div>
+                    )}
+                    {problem.outputFormat && (
+                      <div className="p-4 rounded-lg border border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Output Format</h3>
+                        <p className="text-sm text-gray-700 whitespace-pre-line">{problem.outputFormat}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {problem.examples && problem.examples.length > 0 && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Examples</h3>
@@ -182,6 +218,32 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack, currentU
                         <li key={index} className="text-sm text-gray-700">• {constraint}</li>
                       ))}
                     </ul>
+                  </div>
+                )}
+
+                {sampleTestCases.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Sample Test Cases</h3>
+                    <div className="space-y-4">
+                      {sampleTestCases.map((testCase, index) => (
+                        <div key={index} className="rounded-lg border border-gray-200 overflow-hidden">
+                          <div className="px-4 py-2 bg-gray-50 flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-700">Sample #{index + 1}</span>
+                            <span className="text-xs text-gray-500">Visible</span>
+                          </div>
+                          <div className="p-4 space-y-3">
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Input</p>
+                              <pre className="mt-1 bg-gray-50 rounded-md p-3 text-sm text-gray-800 whitespace-pre-wrap">{testCase.input}</pre>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Expected Output</p>
+                              <pre className="mt-1 bg-gray-50 rounded-md p-3 text-sm text-gray-800 whitespace-pre-wrap">{testCase.expectedOutput}</pre>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 

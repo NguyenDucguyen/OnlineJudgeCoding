@@ -4,6 +4,8 @@ export interface Problem {
   difficulty: 'Easy' | 'Medium' | 'Hard' | string;
   category?: string;
   description: string;
+  inputFormat?: string;
+  outputFormat?: string;
   examples?: Example[];
   testCases: TestCase[];
   constraints?: string[];
