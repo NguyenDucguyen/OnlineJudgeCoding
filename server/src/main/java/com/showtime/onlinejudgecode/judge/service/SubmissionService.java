@@ -90,32 +90,34 @@ public class SubmissionService {
                     // Quan trọng: Vì testCases đã fetch ở bước 1, nên ở đây dùng bình thường
                     return runTestCases(problem.getTestCases(), request, problem)
                             .collectList()
-                            .flatMap(results -> {
-                                // ... (Code xử lý kết quả giữ nguyên như cũ) ...
-                                return Mono.fromCallable(() -> {
-                                    // ... logic update submission ...
-                                    long passed = results.stream().filter(r -> r.getStatus().getId() == 3).count();
-                                    savedSubmission.setPassedTestCases((int) passed);
-                                    savedSubmission.setStatus(passed == results.size() ? "ACCEPTED" : "WRONG_ANSWER");
+                            .flatMap(results -> Mono.fromCallable(() -> {
+                                // Bảo vệ null khi Judge0 trả về trạng thái không hợp lệ
+                                long passed = results.stream().filter(this::isAccepted).count();
+                                savedSubmission.setPassedTestCases((int) passed);
 
-                                    // Logic decodeBase64 bạn vừa thêm
-                                    results.stream()
-                                            .filter(r -> r.getStatus().getId() != 3)
-                                            .findFirst()
-                                            .ifPresent(failed -> {
-                                                String decodedStdout = decodeBase64(failed.getStdout());
-                                                String decodedError = decodeBase64(failed.getStderr() != null ? failed.getStderr() : failed.getCompile_output());
-                                                savedSubmission.setOutput(decodedStdout);
-                                                savedSubmission.setErrorMessage(decodedError);
-                                            });
+                                boolean allPassed = !results.isEmpty() && passed == results.size();
+                                savedSubmission.setStatus(allPassed ? "ACCEPTED" : "WRONG_ANSWER");
 
-                                    double avgTime = results.stream().mapToDouble(Judge0Response::getTime).average().orElse(0.0);
-                                    savedSubmission.setRuntime((int) (avgTime * 1000));
+                                results.stream()
+                                        .filter(resp -> !isAccepted(resp))
+                                        .findFirst()
+                                        .ifPresent(failed -> {
+                                            String decodedStdout = decodeBase64(failed.getStdout());
+                                            String decodedError = decodeBase64(
+                                                    failed.getStderr() != null ? failed.getStderr() : failed.getCompile_output());
+                                            savedSubmission.setOutput(decodedStdout);
+                                            savedSubmission.setErrorMessage(decodedError);
+                                        });
 
-                                    submissionRepository.save(savedSubmission);
-                                    return buildResponse(savedSubmission);
-                                }).subscribeOn(Schedulers.boundedElastic());
-                            });
+                                double avgTime = results.stream()
+                                        .mapToDouble(resp -> resp.getTime() != null ? resp.getTime() : 0.0)
+                                        .average()
+                                        .orElse(0.0);
+                                savedSubmission.setRuntime((int) (avgTime * 1000));
+
+                                submissionRepository.save(savedSubmission);
+                                return buildResponse(savedSubmission);
+                            }).subscribeOn(Schedulers.boundedElastic()));
                 })
                 .onErrorResume(ex -> Mono.error(ex));
     }
@@ -203,6 +205,18 @@ public class SubmissionService {
         } catch (IllegalArgumentException e) {
             return encodedString; // Trả về text gốc nếu Judge0 không gửi về base64
         }
+    }
+
+    private boolean isAccepted(Judge0Response response) {
+        Integer statusId = getStatusId(response);
+        return statusId != null && statusId == 3;
+    }
+
+    private Integer getStatusId(Judge0Response response) {
+        if (response == null || response.getStatus() == null) {
+            return null;
+        }
+        return response.getStatus().getId();
     }
     // ... (toHistoryResponse giữ nguyên)
     private SubmissionHistoryResponse toHistoryResponse(Submission submission) {
