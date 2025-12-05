@@ -11,6 +11,8 @@ interface CodeEditorProps {
   onRunCode: (code: string) => void;
   onSubmitCode: (code: string) => void;
   isRunning?: boolean;
+  canSubmit?: boolean;
+  submitGuardMessage?: string;
 }
 
 const CodeEditor: React.FC<CodeEditorProps> = ({
@@ -19,7 +21,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   onLanguageChange,
   onRunCode,
   onSubmitCode,
-  isRunning = false
+  isRunning = false,
+  canSubmit = true,
+  submitGuardMessage,
 }) => {
   const [code, setCode] = useState(initialCode || getDefaultCode(language));
 
@@ -94,13 +98,25 @@ int main() {
 
           <button
             onClick={() => onSubmitCode(code)}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+            disabled={!canSubmit}
+            className={`inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              canSubmit
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+            }`}
           >
             <Upload className="w-4 h-4" />
             <span>Submit</span>
           </button>
         </div>
       </div>
+
+      {!canSubmit && submitGuardMessage && (
+        <div className="px-4 py-2 bg-yellow-50 border-b border-yellow-200 text-xs text-yellow-800 flex items-start space-x-2">
+          <Upload className="w-4 h-4 mt-0.5" />
+          <p>{submitGuardMessage}</p>
+        </div>
+      )}
 
       <Editor
         height="320px"
