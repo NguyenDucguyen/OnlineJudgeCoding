@@ -297,12 +297,20 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack, currentU
 
           {/* Right Panel - Code Editor */}
           <div className="space-y-6">
+            {!currentUser && (
+              <div className="p-4 rounded-lg border border-yellow-200 bg-yellow-50 text-sm text-yellow-800">
+                Đăng nhập ở ô góc phải màn hình để bật nút nộp bài. Bạn vẫn có thể chạy thử code trước khi đăng nhập.
+              </div>
+            )}
+
             <CodeEditor
                 language={language}
                 onLanguageChange={setLanguage}
                 onRunCode={handleRunCode}
                 onSubmitCode={handleSubmitCode}
                 isRunning={isRunning}
+                canSubmit={Boolean(currentUser)}
+                submitGuardMessage="Bạn cần đăng nhập để nộp bài. Sử dụng bảng đăng nhập ở góc phải màn hình."
             />
 
             {/* Test Results */}
