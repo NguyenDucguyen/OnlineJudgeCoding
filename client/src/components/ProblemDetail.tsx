@@ -30,7 +30,7 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack, currentU
   const sampleTestCases = useMemo(() => (problem.testCases || []).filter(test => !test.hidden), [problem.testCases]);
 
   const buildTestResults = (response: SubmissionResponse) => {
-    const visibleCases = problem.testCases || [];
+    const visibleCases = sampleTestCases;
     const passedCount = response.passedTestCases ?? 0;
     return visibleCases.map((testCase, index) => ({
       testCase: index + 1,
