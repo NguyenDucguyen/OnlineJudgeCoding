@@ -17,6 +17,11 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack, currentU
   const [testResults, setTestResults] = useState<any[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
+  const [submissionSummary, setSubmissionSummary] = useState<{
+    passedTestCases?: number | null;
+    totalTestCases?: number | null;
+    runtime?: number | null;
+  } | null>(null);
   const [language, setLanguage] = useState<'javascript' | 'python' | 'java' | 'cpp'>('javascript');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -31,14 +36,30 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack, currentU
 
   const buildTestResults = (response: SubmissionResponse) => {
     const visibleCases = sampleTestCases;
+    const status = response.status?.toUpperCase();
+    const runtime = response.runtime ?? 0;
     const passedCount = response.passedTestCases ?? 0;
+
+    // When all tests are accepted, reflect that the visible/sample cases all passed.
+    if (status === 'ACCEPTED') {
+      return visibleCases.map((testCase, index) => ({
+        testCase: index + 1,
+        input: testCase.input,
+        expected: testCase.expectedOutput,
+        actual: testCase.expectedOutput,
+        passed: true,
+        executionTime: runtime,
+      }));
+    }
+
+    const visiblePassedCount = Math.min(passedCount, visibleCases.length);
     return visibleCases.map((testCase, index) => ({
       testCase: index + 1,
       input: testCase.input,
       expected: testCase.expectedOutput,
-      actual: response.output || testCase.expectedOutput,
-      passed: index < passedCount,
-      executionTime: response.runtime || 0,
+      actual: index < visiblePassedCount ? testCase.expectedOutput : (response.output || testCase.expectedOutput),
+      passed: index < visiblePassedCount,
+      executionTime: runtime,
     }));
   };
 
@@ -59,6 +80,11 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack, currentU
         token: authToken,
       });
       setTestResults(buildTestResults(response));
+      setSubmissionSummary({
+        passedTestCases: response.passedTestCases,
+        totalTestCases: response.totalTestCases,
+        runtime: response.runtime,
+      });
       setSubmissionStatus(response.status);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Unable to submit code');
@@ -281,7 +307,15 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack, currentU
 
           {/* Test Results */}
           {testResults.length > 0 && (
-            <TestResults results={testResults} />
+            <TestResults
+              results={testResults}
+              summary={{
+                passedTestCases: submissionSummary?.passedTestCases ?? null,
+                totalTestCases: submissionSummary?.totalTestCases ?? null,
+                status: submissionStatus,
+                runtime: submissionSummary?.runtime ?? null,
+              }}
+            />
           )}
 
           {/* Submission Status */}
@@ -308,6 +342,11 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack, currentU
                   ? 'Congratulations! Your solution passed all test cases.'
                   : errorMessage || 'Your solution failed some test cases. Please review and try again.'}
               </p>
+              {submissionSummary && (
+                <p className="mt-2 text-xs text-gray-700">
+                  Passed {submissionSummary.passedTestCases ?? 0}/{submissionSummary.totalTestCases ?? 0} tests • Runtime: {submissionSummary.runtime ?? 0}ms
+                </p>
+              )}
             </div>
           )}
 

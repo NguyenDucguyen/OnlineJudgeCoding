@@ -10,14 +10,24 @@ interface TestResult {
   executionTime: number;
 }
 
-interface TestResultsProps {
-  results: TestResult[];
+interface TestSummary {
+  passedTestCases?: number | null;
+  totalTestCases?: number | null;
+  status?: string | null;
+  runtime?: number | null;
 }
 
-const TestResults: React.FC<TestResultsProps> = ({ results }) => {
-  const passedCount = results.filter(r => r.passed).length;
-  const totalCount = results.length;
-  const allPassed = totalCount > 0 && passedCount === totalCount;
+interface TestResultsProps {
+  results: TestResult[];
+  summary?: TestSummary;
+}
+
+const TestResults: React.FC<TestResultsProps> = ({ results, summary }) => {
+  const status = summary?.status?.toUpperCase();
+  const passedCount = summary?.passedTestCases ?? results.filter(r => r.passed).length;
+  const totalCount = summary?.totalTestCases ?? results.length;
+  const allPassed = status === 'ACCEPTED' || (totalCount > 0 && passedCount === totalCount);
+  const runtime = summary?.runtime ?? (results.length > 0 ? results[0].executionTime : 0);
 
   return (
     <div className="bg-white rounded-lg border border-gray-200">
@@ -26,6 +36,7 @@ const TestResults: React.FC<TestResultsProps> = ({ results }) => {
           <div>
             <p className="text-xs uppercase tracking-wide text-gray-500">Sample Test Cases</p>
             <h3 className="text-lg font-semibold text-gray-900">{passedCount}/{totalCount} Passed</h3>
+            <p className="text-xs text-gray-500">Showing the visible test cases that ran during your submission</p>
           </div>
           {allPassed ? (
             <div className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-700">
@@ -43,7 +54,8 @@ const TestResults: React.FC<TestResultsProps> = ({ results }) => {
           <CheckCircle className="w-5 h-5" />
           <div>
             <p className="font-semibold">Congratulations!</p>
-            <p className="text-green-700">You passed every sample case. Submit to run the full test suite.</p>
+            <p className="text-green-700">You passed every sample case. The full test suite also reported all tests passed.</p>
+            <p className="text-green-700 mt-1">Runtime: {runtime}ms</p>
           </div>
         </div>
       )}
@@ -64,7 +76,7 @@ const TestResults: React.FC<TestResultsProps> = ({ results }) => {
                   ) : (
                     <XCircle className="w-5 h-5 text-red-600" />
                   )}
-                  <span className="font-medium text-gray-900">Sample Test case {result.testCase - 1}</span>
+                  <span className="font-medium text-gray-900">Sample Test Case {result.testCase}</span>
                 </div>
                 <div className="flex items-center space-x-1 text-sm text-gray-600">
                   <Clock className="w-4 h-4" />
