@@ -7,15 +7,24 @@ interface HeaderProps {
   onTabChange: (tab: string) => void;
   user?: User | null;
   onLogout?: () => void;
+  onLoginClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, user, onLogout }) => {
+const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, user, onLogout, onLoginClick }) => {
   const tabs = [
     { id: 'prepare', label: 'Prepare', icon: BookOpen },
     { id: 'certify', label: 'Certify', icon: Award },
     { id: 'compete', label: 'Compete', icon: Trophy },
     { id: 'profile', label: 'Profile', icon: UserCircle2 }
   ];
+
+  const handleLogin = () => {
+    if (onLoginClick) {
+      onLoginClick();
+    } else {
+      window.location.assign('/auth');
+    }
+  };
 
   return (
     <header className="bg-white shadow-sm border-b">
@@ -68,8 +77,15 @@ const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, user, onLogout 
                 </button>
               </>
             ) : (
-              <div className="text-sm text-gray-600">
-                <span className="font-medium">Guest mode</span>
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-gray-600">Chưa đăng nhập</span>
+                <button
+                  onClick={handleLogin}
+                  className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-md shadow-sm hover:bg-blue-700"
+                >
+                  <LogOut className="w-4 h-4 rotate-180" />
+                  <span>Đăng nhập/Đăng ký</span>
+                </button>
               </div>
             )}
           </div>

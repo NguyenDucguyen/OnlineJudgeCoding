@@ -8,10 +8,13 @@ import SubmissionHistory from './components/SubmissionHistory';
 import { problems as fallbackProblems } from './data/problems';
 import { Problem } from './types';
 import { fetchProblems } from './services/api';
-import AuthPanel from './components/AuthPanel';
 import { useAuth } from './context/AuthContext';
 
-function App() {
+interface AppProps {
+  onNavigateAuth?: () => void;
+}
+
+function App({ onNavigateAuth }: AppProps) {
   const [activeTab, setActiveTab] = useState('prepare');
   const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null);
   const [problems, setProblems] = useState<Problem[]>(fallbackProblems as Problem[]);
@@ -119,8 +122,13 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header activeTab={activeTab} onTabChange={setActiveTab} user={user} onLogout={logout} />
-      <AuthPanel />
+      <Header
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        user={user}
+        onLogout={logout}
+        onLoginClick={onNavigateAuth}
+      />
       <main>
         {renderContent()}
       </main>
