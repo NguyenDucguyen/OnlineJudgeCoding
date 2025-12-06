@@ -28,7 +28,7 @@ const AiFeedbackPanel: React.FC<AiFeedbackPanelProps> = ({
         <div className="flex items-center space-x-3">
           <Bot className="w-5 h-5 text-indigo-600" />
           <div>
-            <p className="text-sm font-semibold text-gray-900">GPT-4o code feedback</p>
+            <p className="text-sm font-semibold text-gray-900">Code feedback</p>
             <p className="text-xs text-gray-500">Giải thích lỗi và gợi ý cải thiện sau lần nộp mới nhất</p>
           </div>
         </div>
@@ -43,13 +43,13 @@ const AiFeedbackPanel: React.FC<AiFeedbackPanelProps> = ({
           }`}
         >
           {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-          {submissionId ? 'Nhận feedback' : 'Nộp bài để dùng AI'}
+          {submissionId ? 'Nhận feedback' : 'Get Feeeback'}
         </button>
       </div>
 
       <div className="p-4 space-y-3">
         {!submissionId && (
-          <p className="text-sm text-gray-600">Chạy và nộp code để lấy giải thích từ GPT-4o.</p>
+          <p className="text-sm text-gray-600">Chạy và nộp code để lấy giải thích</p>
         )}
 
         {submissionStatus && submissionId && (
