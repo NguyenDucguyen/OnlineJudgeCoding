@@ -51,10 +51,14 @@ public class AiFeedbackService {
     }
 
     public AiFeedbackResponse generateFeedback(Long submissionId) {
-        ensureApiKeyPresent();
-
         Submission submission = submissionRepository.findByIdWithProblem(submissionId)
                 .orElseThrow(() -> new IllegalArgumentException("Submission not found"));
+
+        if (!StringUtils.hasText(apiKey)) {
+            log.warn("OpenAI API key is missing. Returning fallback feedback.");
+            return buildFallbackResponse(submissionId, submission,
+                    "Thiếu cấu hình openai.api-key trong application.yml hoặc biến môi trường OPENAI_API_KEY.");
+        }
 
         ChatCompletionRequest request = new ChatCompletionRequest();
         request.setModel(model);
@@ -64,27 +68,58 @@ public class AiFeedbackService {
                 new ChatMessage("user", buildPrompt(submission))
         ));
 
-        ChatCompletionResponse response = webClient.post()
-                .uri("/chat/completions")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(ChatCompletionResponse.class)
-                .timeout(Duration.ofSeconds(60))
-                .onErrorResume(ex -> {
-                    log.error("Không gọi được OpenAI", ex);
-                    return Mono.error(new RuntimeException("Không thể lấy phản hồi từ GPT-4o"));
-                })
-                .block();
+        ChatCompletionResponse response;
+        try {
+            response = webClient.post()
+                    .uri("/chat/completions")
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(ChatCompletionResponse.class)
+                    .timeout(Duration.ofSeconds(60))
+                    .onErrorResume(ex -> {
+                        log.error("Không gọi được OpenAI", ex);
+                        return Mono.error(new RuntimeException("Không thể lấy phản hồi từ GPT-4o"));
+                    })
+                    .block();
+        } catch (Exception ex) {
+            log.error("AI feedback generation failed, returning fallback response", ex);
+            return buildFallbackResponse(submissionId, submission, "Không thể lấy phản hồi từ GPT-4o: " + ex.getMessage());
+        }
 
         String content = response != null ? response.getFirstMessageContent() : null;
 
+        return buildResponse(submissionId, submission, content != null ? content : "Không nhận được phản hồi từ GPT-4o.");
+    }
+
+    private AiFeedbackResponse buildResponse(Long submissionId, Submission submission, String feedbackContent) {
         AiFeedbackResponse feedbackResponse = new AiFeedbackResponse();
         feedbackResponse.setSubmissionId(submissionId);
         feedbackResponse.setProblemTitle(submission.getProblem() != null ? submission.getProblem().getTitle() : null);
         feedbackResponse.setStatus(submission.getStatus());
         feedbackResponse.setModel(model);
-        feedbackResponse.setFeedback(content != null ? content : "Không nhận được phản hồi từ GPT-4o.");
+        feedbackResponse.setFeedback(feedbackContent);
         return feedbackResponse;
+    }
+
+    private AiFeedbackResponse buildFallbackResponse(Long submissionId, Submission submission, String reason) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(reason).append("\n");
+        builder.append("Trạng thái bài: ").append(submission.getStatus()).append(". ");
+        builder.append("Passed ")
+                .append(submission.getPassedTestCases() != null ? submission.getPassedTestCases() : 0)
+                .append("/")
+                .append(submission.getTotalTestCases() != null ? submission.getTotalTestCases() : 0)
+                .append(" test.\n");
+
+        if (StringUtils.hasText(submission.getErrorMessage())) {
+            builder.append("Thông báo lỗi gần nhất: ").append(submission.getErrorMessage()).append("\n");
+        } else if (StringUtils.hasText(submission.getOutput())) {
+            builder.append("Output gần nhất: ").append(submission.getOutput()).append("\n");
+        }
+
+        builder.append("Vui lòng cấu hình OpenAI API key hoặc thử lại sau.");
+
+        return buildResponse(submissionId, submission, builder.toString());
     }
 
     private String buildPrompt(Submission submission) {
@@ -128,11 +163,5 @@ public class AiFeedbackService {
         prompt.append("Hãy: (1) Giải thích lý do bài không đạt (hoặc điểm mạnh nếu Accepted). (2) Đưa 2-3 gợi ý chi tiết để cải thiện hoặc sửa lỗi. (3) Không cung cấp đáp án hoàn chỉnh, chỉ hướng đi.");
 
         return prompt.toString();
-    }
-
-    private void ensureApiKeyPresent() {
-        if (!StringUtils.hasText(apiKey)) {
-            throw new IllegalStateException("Thiếu cấu hình openai.api-key trong application.yml hoặc biến môi trường OPENAI_API_KEY.");
-        }
     }
 }
