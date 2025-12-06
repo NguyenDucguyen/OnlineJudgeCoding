@@ -91,5 +91,395 @@
       { "input": "7", "expectedOutput": "7", "hidden": true },
       { "input": "1 2 3 4 5 6 7 8 9", "expectedOutput": "9 8 7 6 5 4 3 2 1", "hidden": true }
     ]
+  },
+  {
+    "title": "Climbing Stairs",
+    "description": "You are climbing a staircase. It takes n steps to reach the top. Each time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?\n\nInput Format:\nA single integer n (1 <= n <= 45)\n\nOutput Format:\nA single integer representing the number of ways",
+    "difficulty": "EASY",
+    "timeLimit": 1000,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "2", "expectedOutput": "2", "hidden": false },
+      { "input": "3", "expectedOutput": "3", "hidden": false },
+      { "input": "5", "expectedOutput": "8", "hidden": true },
+      { "input": "10", "expectedOutput": "89", "hidden": true }
+    ]
+  },
+  {
+    "title": "Missing Number",
+    "description": "Given an array containing n distinct numbers taken from 0, 1, 2, ..., n, find the one that is missing from the array.\n\nInput Format:\nSpace-separated integers representing the array\n\nOutput Format:\nThe missing integer",
+    "difficulty": "EASY",
+    "timeLimit": 1000,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "3 0 1", "expectedOutput": "2", "hidden": false },
+      { "input": "0 1", "expectedOutput": "2", "hidden": false },
+      { "input": "9 6 4 2 3 5 7 0 1", "expectedOutput": "8", "hidden": true },
+      { "input": "0", "expectedOutput": "1", "hidden": true }
+    ]
+  },
+  {
+    "title": "Maximum Subarray",
+    "description": "Given an integer array nums, find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.\n\nInput Format:\nSpace-separated integers representing the array\n\nOutput Format:\nA single integer representing the maximum sum",
+    "difficulty": "MEDIUM",
+    "timeLimit": 1500,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "-2 1 -3 4 -1 2 1 -5 4", "expectedOutput": "6", "hidden": false },
+      { "input": "1", "expectedOutput": "1", "hidden": false },
+      { "input": "5 4 -1 7 8", "expectedOutput": "23", "hidden": true },
+      { "input": "-1 -2 -3", "expectedOutput": "-1", "hidden": true }
+    ]
+  },
+  {
+    "title": "Valid Anagram",
+    "description": "Given two strings s and t, return true if t is an anagram of s, and false otherwise.\n\nInput Format:\nTwo lines. First line is string s, second line is string t.\n\nOutput Format:\ntrue or false",
+    "difficulty": "EASY",
+    "timeLimit": 1000,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "anagram\nnagaram", "expectedOutput": "true", "hidden": false },
+      { "input": "rat\ncar", "expectedOutput": "false", "hidden": false },
+      { "input": "a\na", "expectedOutput": "true", "hidden": true },
+      { "input": "ab\na", "expectedOutput": "false", "hidden": true }
+    ]
+  },
+  {
+    "title": "Stock Buy and Sell",
+    "description": "You are given an array prices where prices[i] is the price of a given stock on the ith day. You want to maximize your profit by choosing a single day to buy one stock and choosing a different day in the future to sell that stock. Return the maximum profit you can achieve from this transaction. If you cannot achieve any profit, return 0.\n\nInput Format:\nSpace-separated integers representing prices\n\nOutput Format:\nMaximum profit integer",
+    "difficulty": "EASY",
+    "timeLimit": 1000,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "7 1 5 3 6 4", "expectedOutput": "5", "hidden": false },
+      { "input": "7 6 4 3 1", "expectedOutput": "0", "hidden": false },
+      { "input": "1 2", "expectedOutput": "1", "hidden": true },
+      { "input": "2 4 1", "expectedOutput": "2", "hidden": true }
+    ]
+  },
+  {
+    "title": "Longest Increasing Subsequence",
+    "description": "Given an integer array nums, return the length of the longest strictly increasing subsequence.\n\nInput Format:\nSpace-separated integers\n\nOutput Format:\nThe length of the LIS",
+    "difficulty": "MEDIUM",
+    "timeLimit": 2000,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "10 9 2 5 3 7 101 18", "expectedOutput": "4", "hidden": false },
+      { "input": "0 1 0 3 2 3", "expectedOutput": "4", "hidden": false },
+      { "input": "7 7 7 7 7 7 7", "expectedOutput": "1", "hidden": true },
+      { "input": "1 3 6 7 9 4 10 5 6", "expectedOutput": "6", "hidden": true }
+    ]
+  },
+  {
+    "title": "Coin Change",
+    "description": "You are given an integer array coins representing coins of different denominations and an integer amount representing a total amount of money. Return the fewest number of coins that you need to make up that amount. If that amount of money cannot be made up by any combination of the coins, return -1.\n\nInput Format:\nFirst line: space-separated integers (coins)\nSecond line: integer (amount)\n\nOutput Format:\nFewest number of coins or -1",
+    "difficulty": "MEDIUM",
+    "timeLimit": 2000,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "1 2 5\n11", "expectedOutput": "3", "hidden": false },
+      { "input": "2\n3", "expectedOutput": "-1", "hidden": false },
+      { "input": "1\n0", "expectedOutput": "0", "hidden": true },
+      { "input": "186 419 83 408\n6249", "expectedOutput": "20", "hidden": true }
+    ]
+  },
+  {
+    "title": "Power of Two",
+    "description": "Given an integer n, return true if it is a power of two. Otherwise, return false.\n\nInput Format:\nA single integer n\n\nOutput Format:\ntrue or false",
+    "difficulty": "EASY",
+    "timeLimit": 1000,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "1", "expectedOutput": "true", "hidden": false },
+      { "input": "16", "expectedOutput": "true", "hidden": false },
+      { "input": "3", "expectedOutput": "false", "hidden": true },
+      { "input": "2147483648", "expectedOutput": "false", "hidden": true }
+    ]
+  },
+  {
+    "title": "Search Insert Position",
+    "description": "Given a sorted array of distinct integers and a target value, return the index if the target is found. If not, return the index where it would be if it were inserted in order.\n\nInput Format:\nFirst line: space-separated sorted integers\nSecond line: target integer\n\nOutput Format:\nIndex integer",
+    "difficulty": "EASY",
+    "timeLimit": 1000,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "1 3 5 6\n5", "expectedOutput": "2", "hidden": false },
+      { "input": "1 3 5 6\n2", "expectedOutput": "1", "hidden": false },
+      { "input": "1 3 5 6\n7", "expectedOutput": "4", "hidden": true },
+      { "input": "1 3 5 6\n0", "expectedOutput": "0", "hidden": true }
+    ]
+  },
+  {
+    "title": "Single Number",
+    "description": "Given a non-empty array of integers nums, every element appears twice except for one. Find that single one.\n\nInput Format:\nSpace-separated integers\n\nOutput Format:\nThe single integer",
+    "difficulty": "EASY",
+    "timeLimit": 1000,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "2 2 1", "expectedOutput": "1", "hidden": false },
+      { "input": "4 1 2 1 2", "expectedOutput": "4", "hidden": false },
+      { "input": "1", "expectedOutput": "1", "hidden": true },
+      { "input": "-1 -1 -2", "expectedOutput": "-2", "hidden": true }
+    ]
+  },
+  {
+    "title": "Move Zeroes",
+    "description": "Given an integer array nums, move all 0's to the end of it while maintaining the relative order of the non-zero elements.\n\nInput Format:\nSpace-separated integers\n\nOutput Format:\nSpace-separated integers (modified array)",
+    "difficulty": "EASY",
+    "timeLimit": 1000,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "0 1 0 3 12", "expectedOutput": "1 3 12 0 0", "hidden": false },
+      { "input": "0", "expectedOutput": "0", "hidden": false },
+      { "input": "1 2 3", "expectedOutput": "1 2 3", "hidden": true },
+      { "input": "0 0 1", "expectedOutput": "1 0 0", "hidden": true }
+    ]
+  },
+  {
+    "title": "Length of Last Word",
+    "description": "Given a string s consisting of words and spaces, return the length of the last word in the string.\n\nInput Format:\nA string containing words and spaces\n\nOutput Format:\nInteger length",
+    "difficulty": "EASY",
+    "timeLimit": 1000,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "Hello World", "expectedOutput": "5", "hidden": false },
+      { "input": "   fly me   to   the moon  ", "expectedOutput": "4", "hidden": false },
+      { "input": "luffy is still joyboy", "expectedOutput": "6", "hidden": true },
+      { "input": "a", "expectedOutput": "1", "hidden": true }
+    ]
+  },
+  {
+    "title": "Container With Most Water",
+    "description": "You are given an integer array height of length n. There are n vertical lines drawn such that the two endpoints of the ith line are (i, 0) and (i, height[i]). Find two lines that together with the x-axis form a container, such that the container contains the most water. Return the maximum amount of water a container can store.\n\nInput Format:\nSpace-separated integers representing heights\n\nOutput Format:\nMax water area (integer)",
+    "difficulty": "MEDIUM",
+    "timeLimit": 2000,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "1 8 6 2 5 4 8 3 7", "expectedOutput": "49", "hidden": false },
+      { "input": "1 1", "expectedOutput": "1", "hidden": false },
+      { "input": "4 3 2 1 4", "expectedOutput": "16", "hidden": true },
+      { "input": "1 2 1", "expectedOutput": "2", "hidden": true }
+    ]
+  },
+  {
+    "title": "Longest Common Subsequence",
+    "description": "Given two strings text1 and text2, return the length of their longest common subsequence. If there is no common subsequence, return 0.\n\nInput Format:\nTwo lines, each containing a string\n\nOutput Format:\nLength of LCS",
+    "difficulty": "MEDIUM",
+    "timeLimit": 2000,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "abcde\nace", "expectedOutput": "3", "hidden": false },
+      { "input": "abc\nabc", "expectedOutput": "3", "hidden": false },
+      { "input": "abc\ndef", "expectedOutput": "0", "hidden": true },
+      { "input": "ezupkr\nubmrapg", "expectedOutput": "2", "hidden": true }
+    ]
+  },
+  {
+    "title": "Trapping Rain Water",
+    "description": "Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it can trap after raining.\n\nInput Format:\nSpace-separated integers representing elevation map\n\nOutput Format:\nTotal water trapped (integer)",
+    "difficulty": "HARD",
+    "timeLimit": 2000,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "0 1 0 2 1 0 1 3 2 1 2 1", "expectedOutput": "6", "hidden": false },
+      { "input": "4 2 0 3 2 5", "expectedOutput": "9", "hidden": false },
+      { "input": "1 1 1 1", "expectedOutput": "0", "hidden": true },
+      { "input": "5 4 1 2", "expectedOutput": "1", "hidden": true }
+    ]
+  },
+  {
+    "title": "Word Break",
+    "description": "Given a string s and a dictionary of strings wordDict, return true if s can be segmented into a space-separated sequence of one or more dictionary words.\n\nInput Format:\nFirst line: string s\nSecond line: space-separated dictionary words\n\nOutput Format:\ntrue or false",
+    "difficulty": "MEDIUM",
+    "timeLimit": 2000,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "leetcode\nleet code", "expectedOutput": "true", "hidden": false },
+      { "input": "applepenapple\napple pen", "expectedOutput": "true", "hidden": false },
+      { "input": "catsandog\ncats dog sand and cat", "expectedOutput": "false", "hidden": true },
+      { "input": "aaaaaaa\naaaa aaa", "expectedOutput": "true", "hidden": true }
+    ]
+  },
+  {
+    "title": "Product of Array Except Self",
+    "description": "Given an integer array nums, return an array answer such that answer[i] is equal to the product of all the elements of nums except nums[i]. You must write an algorithm that runs in O(n) time and without using the division operation.\n\nInput Format:\nSpace-separated integers\n\nOutput Format:\nSpace-separated integers",
+    "difficulty": "MEDIUM",
+    "timeLimit": 2000,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "1 2 3 4", "expectedOutput": "24 12 8 6", "hidden": false },
+      { "input": "-1 1 0 -3 3", "expectedOutput": "0 0 9 0 0", "hidden": false },
+      { "input": "5 5", "expectedOutput": "5 5", "hidden": true },
+      { "input": "2 3 5 0", "expectedOutput": "0 0 0 30", "hidden": true }
+    ]
+  },
+  {
+    "title": "Majority Element",
+    "description": "Given an array nums of size n, return the majority element. The majority element is the element that appears more than n / 2 times.\n\nInput Format:\nSpace-separated integers\n\nOutput Format:\nThe majority element",
+    "difficulty": "EASY",
+    "timeLimit": 1000,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "3 2 3", "expectedOutput": "3", "hidden": false },
+      { "input": "2 2 1 1 1 2 2", "expectedOutput": "2", "hidden": false },
+      { "input": "1", "expectedOutput": "1", "hidden": true },
+      { "input": "6 5 5", "expectedOutput": "5", "hidden": true }
+    ]
+  },
+  {
+    "title": "Edit Distance",
+    "description": "Given two strings word1 and word2, return the minimum number of operations required to convert word1 to word2. You have the following three operations permitted on a word: Insert, Delete, Replace.\n\nInput Format:\nTwo lines, each containing a string\n\nOutput Format:\nMinimum operations (integer)",
+    "difficulty": "HARD",
+    "timeLimit": 2000,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "horse\nros", "expectedOutput": "3", "hidden": false },
+      { "input": "intention\nexecution", "expectedOutput": "5", "hidden": false },
+      { "input": "a\na", "expectedOutput": "0", "hidden": true },
+      { "input": "\na", "expectedOutput": "1", "hidden": true }
+    ]
+  },
+  {
+    "title": "Reverse Words in a String",
+    "description": "Given an input string s, reverse the order of the words. Return a string of the words in reverse order concatenated by a single space.\n\nInput Format:\nA single string (possibly with multiple spaces)\n\nOutput Format:\nA single string (words separated by single space)",
+    "difficulty": "MEDIUM",
+    "timeLimit": 1500,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "the sky is blue", "expectedOutput": "blue is sky the", "hidden": false },
+      { "input": "  hello world  ", "expectedOutput": "world hello", "hidden": false },
+      { "input": "a good   example", "expectedOutput": "example good a", "hidden": true },
+      { "input": "Alice", "expectedOutput": "Alice", "hidden": true }
+    ]
+  },
+  {
+    "title": "House Robber",
+    "description": "You are a professional robber planning to rob houses along a street. Adjacent houses have security systems connected. Given an integer array nums representing the amount of money of each house, return the maximum amount of money you can rob tonight without alerting the police.\n\nInput Format:\nSpace-separated integers\n\nOutput Format:\nMax money (integer)",
+    "difficulty": "MEDIUM",
+    "timeLimit": 1500,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "1 2 3 1", "expectedOutput": "4", "hidden": false },
+      { "input": "2 7 9 3 1", "expectedOutput": "12", "hidden": false },
+      { "input": "0", "expectedOutput": "0", "hidden": true },
+      { "input": "5 1 1 5", "expectedOutput": "10", "hidden": true }
+    ]
+  },
+  {
+    "title": "Minimum Path Sum",
+    "description": "Given a m x n grid filled with non-negative numbers, find a path from top left to bottom right, which minimizes the sum of all numbers along its path. You can only move either down or right at any point in time.\n\nInput Format:\nFirst line: m n (dimensions). Following m lines: space-separated integers for each row.\n\nOutput Format:\nMinimum sum (integer)",
+    "difficulty": "MEDIUM",
+    "timeLimit": 2000,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "3 3\n1 3 1\n1 5 1\n4 2 1", "expectedOutput": "7", "hidden": false },
+      { "input": "2 3\n1 2 3\n4 5 6", "expectedOutput": "12", "hidden": false },
+      { "input": "1 1\n5", "expectedOutput": "5", "hidden": true },
+      { "input": "2 2\n1 100\n1 1", "expectedOutput": "3", "hidden": true }
+    ]
+  },
+  {
+    "title": "Evaluate Reverse Polish Notation",
+    "description": "Evaluate the value of an arithmetic expression in Reverse Polish Notation. Valid operators are +, -, *, and /. Division truncates toward zero.\n\nInput Format:\nSpace-separated tokens (strings/numbers)\n\nOutput Format:\nResult integer",
+    "difficulty": "MEDIUM",
+    "timeLimit": 1500,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "2 1 + 3 *", "expectedOutput": "9", "hidden": false },
+      { "input": "4 13 5 / +", "expectedOutput": "6", "hidden": false },
+      { "input": "10 6 9 3 + -11 * / * 17 + 5 +", "expectedOutput": "22", "hidden": true },
+      { "input": "3 4 -", "expectedOutput": "-1", "hidden": true }
+    ]
+  },
+  {
+    "title": "Is Subsequence",
+    "description": "Given two strings s and t, return true if s is a subsequence of t, or false otherwise.\n\nInput Format:\nTwo lines. First line s, second line t.\n\nOutput Format:\ntrue or false",
+    "difficulty": "EASY",
+    "timeLimit": 1000,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "abc\nahbgdc", "expectedOutput": "true", "hidden": false },
+      { "input": "axc\nahbgdc", "expectedOutput": "false", "hidden": false },
+      { "input": "\nahbgdc", "expectedOutput": "true", "hidden": true },
+      { "input": "abc\n", "expectedOutput": "false", "hidden": true }
+    ]
+  },
+  {
+    "title": "Rotate Array",
+    "description": "Given an array, rotate the array to the right by k steps, where k is non-negative.\n\nInput Format:\nFirst line: space-separated integers (array). Second line: k (steps).\n\nOutput Format:\nSpace-separated integers (rotated array)",
+    "difficulty": "MEDIUM",
+    "timeLimit": 1500,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "1 2 3 4 5 6 7\n3", "expectedOutput": "5 6 7 1 2 3 4", "hidden": false },
+      { "input": "-1 -100 3 99\n2", "expectedOutput": "3 99 -1 -100", "hidden": false },
+      { "input": "1 2\n3", "expectedOutput": "2 1", "hidden": true },
+      { "input": "1\n0", "expectedOutput": "1", "hidden": true }
+    ]
+  },
+  {
+    "title": "Min Stack",
+    "description": "Design a stack that supports push, pop, top, and retrieving the minimum element in constant time. Process a series of commands. Commands: PUSH x, POP, TOP, GETMIN.\n\nInput Format:\nLine separated commands.\n\nOutput Format:\nLine separated outputs for TOP and GETMIN commands.",
+    "difficulty": "MEDIUM",
+    "timeLimit": 2000,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "PUSH -2\nPUSH 0\nPUSH -3\nGETMIN\nPOP\nTOP\nGETMIN", "expectedOutput": "-3\n0\n-2", "hidden": false },
+      { "input": "PUSH 1\nPUSH 2\nTOP\nGETMIN\nPOP\nGETMIN", "expectedOutput": "2\n1\n1", "hidden": false },
+      { "input": "PUSH 10\nGETMIN", "expectedOutput": "10", "hidden": true },
+      { "input": "PUSH 2147483647\nGETMIN", "expectedOutput": "2147483647", "hidden": true }
+    ]
+  },
+  {
+    "title": "Median of Two Sorted Arrays",
+    "description": "Given two sorted arrays nums1 and nums2 of size m and n respectively, return the median of the two sorted arrays.\n\nInput Format:\nFirst line: space-separated nums1\nSecond line: space-separated nums2\n\nOutput Format:\nFloat value (e.g. 2.00000) or Float formatted as string",
+    "difficulty": "HARD",
+    "timeLimit": 2500,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "1 3\n2", "expectedOutput": "2.00000", "hidden": false },
+      { "input": "1 2\n3 4", "expectedOutput": "2.50000", "hidden": false },
+      { "input": "0 0\n0 0", "expectedOutput": "0.00000", "hidden": true },
+      { "input": "\n1", "expectedOutput": "1.00000", "hidden": true }
+    ]
+  },
+  {
+    "title": "Sliding Window Maximum",
+    "description": "You are given an array of integers nums, there is a sliding window of size k which is moving from the very left of the array to the very right. You can only see the k numbers in the window. Each time the sliding window moves right by one position. Return the max sliding window.\n\nInput Format:\nFirst line: space-separated integers (nums)\nSecond line: integer k\n\nOutput Format:\nSpace-separated integers (max values)",
+    "difficulty": "HARD",
+    "timeLimit": 2500,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "1 3 -1 -3 5 3 6 7\n3", "expectedOutput": "3 3 5 5 6 7", "hidden": false },
+      { "input": "1\n1", "expectedOutput": "1", "hidden": false },
+      { "input": "9 11\n2", "expectedOutput": "11", "hidden": true },
+      { "input": "4 -2\n2", "expectedOutput": "4", "hidden": true }
+    ]
+  },
+  {
+    "title": "Ransom Note",
+    "description": "Given two strings ransomNote and magazine, return true if ransomNote can be constructed by using the letters from magazine and false otherwise. Each letter in magazine can only be used once in ransomNote.\n\nInput Format:\nTwo lines. First line ransomNote, second line magazine.\n\nOutput Format:\ntrue or false",
+    "difficulty": "EASY",
+    "timeLimit": 1000,
+    "memoryLimit": 128000,
+    "testCases": [
+      { "input": "a\nb", "expectedOutput": "false", "hidden": false },
+      { "input": "aa\nab", "expectedOutput": "false", "hidden": false },
+      { "input": "aa\naab", "expectedOutput": "true", "hidden": true },
+      { "input": "bg\nefjbdfbdgfjhb", "expectedOutput": "true", "hidden": true }
+    ]
+  },
+  {
+    "title": "Kth Largest Element in an Array",
+    "description": "Given an integer array nums and an integer k, return the kth largest element in the array.\n\nInput Format:\nFirst line: space-separated integers (array)\nSecond line: integer k\n\nOutput Format:\nThe kth largest element",
+    "difficulty": "MEDIUM",
+    "timeLimit": 2000,
+    "memoryLimit": 256000,
+    "testCases": [
+      { "input": "3 2 1 5 6 4\n2", "expectedOutput": "5", "hidden": false },
+      { "input": "3 2 3 1 2 4 5 5 6\n4", "expectedOutput": "4", "hidden": false },
+      { "input": "1\n1", "expectedOutput": "1", "hidden": true },
+      { "input": "-1 -2\n1", "expectedOutput": "-1", "hidden": true }
+    ]
   }
 ]
