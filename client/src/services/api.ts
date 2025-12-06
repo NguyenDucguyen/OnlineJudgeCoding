@@ -1,6 +1,7 @@
 import {
   ApiResponse,
   AuthResponse,
+  AiFeedback,
   CertificateAward,
   Certification,
   Contest,
@@ -77,6 +78,15 @@ export async function submitSolution(payload: SubmitPayload): Promise<Submission
   });
 
   return handleResponse<SubmissionResponse>(res);
+}
+
+export async function fetchAiFeedback(submissionId: number, token?: string | null): Promise<AiFeedback> {
+  const res = await fetch(`${API_URL}/api/ai/submissions/${submissionId}/feedback`, {
+    method: 'POST',
+    headers: withAuthHeaders(token || undefined),
+  });
+
+  return handleResponse<AiFeedback>(res);
 }
 
 export async function fetchMySubmissions(userId: string, token?: string | null): Promise<SubmissionHistory[]> {

@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowLeft, BookOpen, TestTube, Code2 } from 'lucide-react';
-import { Problem, SubmissionResponse, User } from '../types';
+import { AiFeedback, Problem, SubmissionResponse, User } from '../types';
 import CodeEditor from './CodeEditor';
 import TestResults from './TestResults';
-import { submitSolution } from '../services/api';
+import { fetchAiFeedback, submitSolution } from '../services/api';
+import AiFeedbackPanel from './AiFeedbackPanel';
 
 interface ProblemDetailProps {
   problem: Problem;
@@ -24,6 +25,10 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack, currentU
   } | null>(null);
   const [language, setLanguage] = useState<'javascript' | 'python' | 'java' | 'cpp'>('javascript');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [lastSubmissionId, setLastSubmissionId] = useState<number | null>(null);
+  const [aiFeedback, setAiFeedback] = useState<AiFeedback | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const languageMap = useMemo(() => ({
     javascript: { id: 63, label: 'JavaScript' },
@@ -86,6 +91,9 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack, currentU
         runtime: response.runtime,
       });
       setSubmissionStatus(response.status);
+      setLastSubmissionId(response.submissionId);
+      setAiFeedback(null);
+      setAiError(null);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Unable to submit code');
       setSubmissionStatus('Failed');
@@ -100,6 +108,28 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack, currentU
 
   const handleSubmitCode = async (code: string) => {
     await runSubmission(code);
+  };
+
+  const handleRequestAiFeedback = async () => {
+    if (!currentUser) {
+      setAiError('Bạn cần đăng nhập để dùng GPT-4o.');
+      return;
+    }
+    if (!lastSubmissionId) {
+      setAiError('Vui lòng nộp code trước, sau đó thử lại.');
+      return;
+    }
+
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const feedback = await fetchAiFeedback(lastSubmissionId, authToken);
+      setAiFeedback(feedback);
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : 'Không thể lấy feedback từ GPT-4o');
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -325,6 +355,15 @@ const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onBack, currentU
                     }}
                 />
             )}
+
+            <AiFeedbackPanel
+              submissionId={lastSubmissionId}
+              submissionStatus={submissionStatus}
+              feedback={aiFeedback}
+              isLoading={aiLoading}
+              error={aiError}
+              onRequest={handleRequestAiFeedback}
+            />
 
             {/* Submission Status */}
             {submissionStatus && (
