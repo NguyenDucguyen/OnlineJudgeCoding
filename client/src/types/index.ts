@@ -108,6 +108,14 @@ export interface SubmissionResponse {
   score: number;
 }
 
+export interface AiFeedback {
+  submissionId: number;
+  problemTitle?: string | null;
+  status?: string | null;
+  model?: string | null;
+  feedback: string;
+}
+
 export interface User {
   id: string;
   username: string;

@@ -43,5 +43,10 @@ quiz:
         email: admin@gmail.com
         password: A123456a@
 
+openai:
+    api-key: ${OPENAI_API_KEY:}
+    base-url: https://api.openai.com/v1
+    model: gpt-4o
+
 
 #    C:\Users\PC>docker exec -it redis redis-cli flushall               lenh xoa data cache
