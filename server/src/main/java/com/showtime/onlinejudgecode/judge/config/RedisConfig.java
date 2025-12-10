@@ -24,18 +24,11 @@ public class RedisConfig {
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         ObjectMapper objectMapper = new ObjectMapper();
-
-        // 1. Module xử lý ngày giờ (Java 8 time)
         objectMapper.registerModule(new JavaTimeModule());
-
-        // 2. Module xử lý Hibernate Lazy (FIX LỖI CỦA BẠN)
         Hibernate5JakartaModule hibernateModule = new Hibernate5JakartaModule();
-        // Cấu hình: FORCE_LAZY_LOADING = false.
-        // Nghĩa là: Nếu chưa load dữ liệu thì thôi, coi như null, đừng crash app.
         hibernateModule.configure(Hibernate5JakartaModule.Feature.FORCE_LAZY_LOADING, false);
         objectMapper.registerModule(hibernateModule);
 
-        // Các cấu hình chuẩn khác
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         objectMapper.activateDefaultTyping(
                 objectMapper.getPolymorphicTypeValidator(),

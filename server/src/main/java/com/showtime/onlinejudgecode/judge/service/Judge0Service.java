@@ -18,21 +18,18 @@ public class Judge0Service {
     private final WebClient webClient;
     private static final Logger log = LoggerFactory.getLogger(Judge0Service.class);
 
-    // BƯỚC 1: Khai báo biến (Uncomment và thêm final)
-    // Để có thể dùng biến này ở bất kỳ hàm nào bên dưới
     private final String judge0Url;
 
-    // SỬA CONSTRUCTOR:
+
     public Judge0Service(WebClient.Builder webClientBuilder,
                          @Value("${judge0.api.url:http://localhost:2358}") String judge0Url) {
 
         log.info("Connecting to Judge0 at: {}", judge0Url);
 
-        // BƯỚC 2: Gán giá trị tham số vào biến của Class
         this.judge0Url = judge0Url;
 
         this.webClient = webClientBuilder
-                .baseUrl(judge0Url) // Đã set Base URL ở đây rồi
+                .baseUrl(judge0Url)
                 .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024))
                 .build();
     }
@@ -42,9 +39,6 @@ public class Judge0Service {
      */
     public Mono<String> submitCode(Judge0Request request) {
         return webClient.post()
-                // BƯỚC 3: SỬA QUAN TRỌNG
-                // Bỏ "judge0Url" ở đầu đi, chỉ để đường dẫn tương đối.
-                // Vì WebClient đã có Base URL rồi. Nếu để cả 2 sẽ bị lặp URL.
                 .uri("/submissions?base64_encoded=false&wait=false")
                 .bodyValue(request)
                 .retrieve()
@@ -76,7 +70,6 @@ public class Judge0Service {
                 .retrieve()
                 .bodyToMono(Judge0Response.class)
                 .onErrorResume(e -> {
-                    // Dùng biến class this.judge0Url để log cho rõ ràng
                     System.err.println("Lỗi khi gọi Judge0 GET tại " + this.judge0Url + ": " + e.getMessage());
                     return Mono.error(e);
                 });

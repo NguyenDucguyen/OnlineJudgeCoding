@@ -49,4 +49,5 @@ openai:
     model: gpt-4o
 
 
+
 #    C:\Users\PC>docker exec -it redis redis-cli flushall               lenh xoa data cache

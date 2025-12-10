@@ -56,7 +56,7 @@ public class ProblemService implements IProblemService {
         Problem problem = problemRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Problem not found with id " + id));
 
-        // Chủ động load testCases trong transaction
+
         if (problem.getTestCases() != null) {
             Hibernate.initialize(problem.getTestCases());
         }
@@ -64,12 +64,7 @@ public class ProblemService implements IProblemService {
         return mapToProblemResponse(problem, true);
     }
 
-    /**
-     * Tạo bài mới:
-     * Cần xóa cache danh sách ("problems_list") để bài mới hiện ra trong list.
-     * Có thể trả về Entity hoặc DTO, tùy bạn đang dùng ở Controller.
-     * Ở đây mình giữ nguyên là Problem cho đỡ phải sửa nhiều chỗ khác.
-     */
+
     @Override
     @Transactional
     @CacheEvict(value = "problems_list", allEntries = true)
@@ -79,11 +74,7 @@ public class ProblemService implements IProblemService {
         return problemRepository.save(problem);
     }
 
-    /**
-     * Cập nhật bài tập:
-     * 1. Xóa cache chi tiết của bài này (problem_detail::id) để lần sau lấy được data mới.
-     * 2. Xóa cache danh sách (problems_list) vì title hoặc difficulty có thể đã đổi.
-     */
+
     @Override
     @Transactional
     @Caching(evict = {
@@ -103,10 +94,7 @@ public class ProblemService implements IProblemService {
         return problemRepository.save(existing);
     }
 
-    /**
-     * Xóa bài tập:
-     * Tương tự Update, cần xóa cả cache chi tiết và cache danh sách.
-     */
+
     @Override
     @Caching(evict = {
             @CacheEvict(value = "problem_detail", key = "#id"),
@@ -116,11 +104,7 @@ public class ProblemService implements IProblemService {
         problemRepository.deleteById(id);
     }
 
-    // --- Helper Methods ---
 
-    /**
-     * Map dữ liệu từ ProblemRequest sang Entity Problem.
-     */
     private void mapProblemFields(Problem problem, ProblemRequest request) {
         problem.setTitle(request.getTitle());
         problem.setDescription(request.getDescription());
@@ -147,13 +131,7 @@ public class ProblemService implements IProblemService {
         }
     }
 
-    /**
-     * Map Entity Problem -> DTO ProblemResponse.
-     *
-     * @param includeTestCases:
-     *     - true: map luôn testCases (dùng cho detail).
-     *     - false: bỏ testCases (dùng cho list, tránh lazy + performance).
-     */
+
     private ProblemResponse mapToProblemResponse(Problem problem, boolean includeTestCases) {
         ProblemResponse dto = new ProblemResponse();
         dto.setId(problem.getId());
