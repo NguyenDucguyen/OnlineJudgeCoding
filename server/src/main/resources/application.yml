@@ -1,3 +1,6 @@
+server:
+    port: 8081
+
 judge0:
     api:
         url: http://localhost:2358
@@ -48,6 +51,9 @@ openai:
     base-url: https://api.openai.com/v1
     model: gpt-4o
 
-
+deepseek:
+    api-key: sk-0d51656c38f14f339c137de30573190f
+    base-url: https://api.deepseek.com
+    model: deepseek-chat
 
 #    C:\Users\PC>docker exec -it redis redis-cli flushall               lenh xoa data cache
